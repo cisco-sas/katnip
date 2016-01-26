@@ -30,6 +30,7 @@ sys.path.insert(0, parentdir)
 
 # Test files to use
 from lego_json import *
+from lego_url import *
 
 if __name__ == '__main__':
     if not os.path.exists('./logs'):
