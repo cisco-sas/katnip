@@ -549,10 +549,10 @@ class StrToJson(JsonTestCase):
         self._compare_to_ref('{"a": null}')
 
     def test_object_with_bool_true(self):
-        self._compare_to_ref('{"a": True}')
+        self._compare_to_ref('{"a": true}')
 
     def test_object_with_bool_false(self):
-        self._compare_to_ref('{"a": False}')
+        self._compare_to_ref('{"a": false}')
 
     def test_object_with_empty_arr(self):
         self._compare_to_ref('{"a": []}')
@@ -575,8 +575,8 @@ class StrToJson(JsonTestCase):
             "list": [1, 2, 3],
             "obj": {
                 "mem1": "1",
-                "mem2": 2,
-            }
+                "mem2": 2
+            },
             "bool": true
         }''')
 
