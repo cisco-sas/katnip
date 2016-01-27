@@ -50,4 +50,8 @@ Contribution FAQ
    Thank You! Please submit a pull request.
 
 
+.. image:: https://readthedocs.org/projects/katnip/badge/?version=latest
+:target: http://katnip.readthedocs.org/en/latest/?badge=latest
+:alt: Documentation Status
+
 .. _Kitty: https://github.com/cisco-sas/kitty
