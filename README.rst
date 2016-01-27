@@ -49,9 +49,12 @@ Contribution FAQ
 *Want to share you implementation?*
    Thank You! Please submit a pull request.
 
+|docs|
 
-.. image:: https://readthedocs.org/projects/katnip/badge/?version=latest
-:target: http://katnip.readthedocs.org/en/latest/?badge=latest
-:alt: Documentation Status
+
+.. |docs| image:: https://readthedocs.org/projects/katnip/badge/?version=latest
+    :alt: Documentation Status
+    :scale: 100%
+    :target: https://katnip.readthedocs.org/en/latest/?badge=latest
 
 .. _Kitty: https://github.com/cisco-sas/kitty
