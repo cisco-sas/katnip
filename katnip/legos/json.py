@@ -17,6 +17,8 @@
 
 '''
 JSON legos - simplified fuzzing of JSON-based protocols
+
+.. todo:: ``JsonNumber``
 '''
 from __future__ import absolute_import
 import json
