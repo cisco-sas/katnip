@@ -27,6 +27,8 @@ class DynamicExtended(OneOf):
         :param fuzzable: is this field fuzzable (default: False)
         :param name: name of the container (default: None)
         '''
+        if name is None:
+            name = key
         fields = [
             Dynamic(key=key, default_value=value, length=len(value), fuzzable=True, name=_join_name(name, 'dynamic')),
             additional_field
