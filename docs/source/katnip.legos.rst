@@ -12,6 +12,7 @@ Submodules
 .. toctree::
 
    katnip.legos.bittorrent
+   katnip.legos.dynamic
    katnip.legos.json
    katnip.legos.tlv
    katnip.legos.url
