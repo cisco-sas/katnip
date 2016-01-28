@@ -58,11 +58,11 @@ class _DescriptorTypes:
     DEVICE_QUALIFIER = 0x6
     OTHER_SPEED_CONFIGURATION = 0x7
     INTERFACE_POWER = 0x8
-    HUB = 0x29
+    HID = 0x21
+    HID_REPORT = 0x22
     CS_INTERFACE = 0x24  # usbcdc11.pdf table 24
     CS_ENDPOINT = 0x25  # usbcdc11.pdf table 24
-    DEVICE_HID = 0x21
-    REPORT = 0x22
+    HUB = 0x29
 
 
 class _StandardFeatureSelector:
@@ -136,14 +136,6 @@ device_qualifier_descriptor = Descriptor(
         UInt8(name='bReserved', value=0)
     ])
 
-'''
-'wTotalLength': struct.pack('<H', wTotalLength),
-'bNumInterfaces': bytes(bNumInterfaces),
-'bConfigurationValue': bytes(self.configuration_index),
-'iConfiguration': bytes(self.configuration_string_index),
-'bmAttributes': bytes(self.attributes),
-'bMaxPower': bytes(self.max_power)
-'''
 # Configuration descriptor
 # Section 9.6.3, page 265
 configuration_descriptor = Descriptor(
@@ -529,41 +521,85 @@ adc_as_format_type_descriptor = Descriptor(
 #              HID Class Templates                #
 ###################################################
 
-hid_configuration_descriptor = Descriptor(
-    name='hid_configuration_descriptor',
-    descriptor_type=_DescriptorTypes.CONFIGURATION,
+hid_descriptor = Descriptor(
+    name='hid_descriptor',
+    descriptor_type=_DescriptorTypes.HID,
     fields=[
-        LE16(name='wTotalLength', value=9),  # TODO: use sizer ?
-        UInt8(name='bNumInterfaces', value=1),
-        UInt8(name='bConfigurationValue', value=1),
-        UInt8(name='iConfiguration', value=0),
-        BitField(name='bmAttributes', value=0xa0, length=8),
-        UInt8(name='bMaxPower', value=0x32)
+        DynamicInt('bcdHID', LE16(value=0x0110)),
+        DynamicInt('bCountryCode', UInt8(value=0x00)),
+        DynamicInt('bNumDescriptors', UInt8(value=0x01)),
+        DynamicInt('bDescriptorType2', UInt8(value=_DescriptorTypes.HID_REPORT)),
+        DynamicInt('wDescriptorLength', LE16(value=0x27)),
     ])
 
-hid_interface_descriptor = Descriptor(
-    name='hid_interface_descriptor',
-    descriptor_type=_DescriptorTypes.INTERFACE,
-    fields=[
-        UInt8(name='bInterfaceNumber', value=0),
-        UInt8(name='bAlternateSetting', value=0),
-        UInt8(name='bNumEndpoints', value=0x2),
-        UInt8(name='bInterfaceClass', value=0x03),  # 0x08 HID
-        UInt8(name='bInterfaceSubClass', value=0x00),
-        UInt8(name='bInterfaceProtocol', value=0x00),
-        UInt8(name='iInterface', value=0)
-    ])
 
-hid_hid_descriptor = Descriptor(
-    name='hid_hid_descriptor',
-    descriptor_type=_DescriptorTypes.DEVICE_HID,
-    fields=[
-        LE16(name='bcdHID', value=0x0110),
-        UInt8(name='bCountryCode', value=0x00),
-        UInt8(name='bNumDescriptors', value=0x01),
-        UInt8(name='bReportDescriptorType', value=_DescriptorTypes.REPORT, fuzzable=True),
-        LE16(name='wDescriptorLength', value=0x002f),  # should be changed ??
-    ])
+def _make_name(base, postfix):
+    if base is None:
+        return None
+    return '%s_%s' % (name, postfix)
+
+
+def gen_command(cmd):
+    def _(param, name=None, fuzzable=True):
+        return Container(fields=[UInt8(name='command', value=cmd), UInt8(name='param', value=param)], name=name, fuzzable=fuzzable)
+    return _
+
+UsagePage = gen_command(0x05)
+Usage = gen_command(0x09)
+Collection = gen_command(0xa1)
+ReportSize = gen_command(0x75)
+ReportCount = gen_command(0x95)
+Input = gen_command(0x81)
+UsageMinimum = gen_command(0x19)
+UsageMaximum = gen_command(0x29)
+LogicalMinimum = gen_command(0x15)
+LogicalMaximum = gen_command(0x25)
+
+
+def EndCollection(name=None, fuzzable=True):
+    return UInt8(value=0xc0, name=name, fuzzable=fuzzable)
+
+
+# this descriptor is based on umap
+# https://github.com/nccgroup/umap
+# commit 3ad812135f8c34dcde0e055d1fefe30500196c0f
+hid_report_descriptor = Container(
+    name='hid_report_descriptor',
+    fields=OneOf(
+        fields=[
+            Container(
+                name='generation',
+                fields=[
+                    UsagePage(0x01),
+                    Usage(0x06),
+                    Collection(0x01),
+                    UsagePage(0x07),
+                    UsageMinimum(0xE0),
+                    UsageMaximum(0xE7),
+                    LogicalMinimum(0x00),
+                    LogicalMaximum(0x01),
+                    ReportSize(0x01),
+                    ReportCount(0x08),
+                    Input(0x02),
+                    ReportCount(0x01),
+                    ReportSize(0x08),
+                    Input(0x01),
+                    UsageMinimum(0x00),
+                    UsageMaximum(0x65),
+                    LogicalMinimum(0x00),
+                    LogicalMaximum(0x65),
+                    ReportSize(0x08),
+                    ReportCount(0x01),
+                    Input(0x00),
+                    EndCollection(),
+                ]),
+            MutableField(
+                name='mutation',
+                value='05010906A101050719E029E7150025017501950881029501750881011900296515002565750895018100C0'.decode('hex')
+            )
+        ]
+    )
+)
 
 # Crashing windows
 # s_initialize('interface_descriptor')
