@@ -1,52 +1,30 @@
-import unittest
-import logging
-
+# Copyright (C) 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+#
+# This file is part of Kitty.
+#
+# Kitty is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# Kitty is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Kitty.  If not, see <http://www.gnu.org/licenses/>.
 from katnip.legos import url as kurl
 from kitty.core import KittyException
-
-test_logger = None
-
-
-def get_test_logger():
-    global test_logger
-    if test_logger is None:
-        logger = logging.getLogger('JSON Legos')
-        logger.setLevel(logging.DEBUG)
-        formatter = logging.Formatter(
-            '[%(asctime)s] [%(levelname)s] -> %(message)s'
-        )
-        handler = logging.FileHandler('logs/test_lego_json.log', mode='w')
-        handler.setFormatter(formatter)
-        handler.setLevel(logging.DEBUG)
-        logger.addHandler(handler)
-        test_logger = logger
-    return test_logger
+from common import BaseTestCase, get_mutation_set
 
 
-class UrlTestCase(unittest.TestCase):
-
-    def setUp(self):
-        self.logger = get_test_logger()
-        self.logger.info('TESTING METHOD: %s', self._testMethodName)
-
-    def prepare(self):
-        pass
-
-
-class IpUrlTestCase(UrlTestCase):
+class IpUrlTestCase(BaseTestCase):
     def test_not_implemented(self):
         raise NotImplemented
 
 
-def get_all_mutations(uut):
-    res = []
-    while uut.mutate():
-        res.append(uut.render().bytes)
-    uut.reset()
-    return res
-
-
-class LoginTestCase(UrlTestCase):
+class LoginTestCase(BaseTestCase):
     '''
     Tests for the URL Login field
     '''
@@ -87,7 +65,7 @@ class LoginTestCase(UrlTestCase):
         username = 'theusername'
         password = 'pass'
         uut = kurl.Login(username=username, password=password, fuzz_username=True, fuzz_password=False, fuzz_delims=False)
-        mutations = get_all_mutations(uut)
+        mutations = get_mutation_set(uut)
         if all(username in mutation for mutation in mutations):
             raise Exception('username always appear')
 
@@ -95,7 +73,7 @@ class LoginTestCase(UrlTestCase):
         username = 'theusername'
         password = 'pass'
         uut = kurl.Login(username=username, password=password, fuzz_username=False, fuzz_password=True, fuzz_delims=True)
-        mutations = get_all_mutations(uut)
+        mutations = get_mutation_set(uut)
         if not all(username in mutation for mutation in mutations):
             raise Exception('username does not always appear')
 
@@ -103,7 +81,7 @@ class LoginTestCase(UrlTestCase):
         username = 'theusername'
         password = 'pass'
         uut = kurl.Login(username=username, password=password, fuzz_username=False, fuzz_password=True, fuzz_delims=False)
-        mutations = get_all_mutations(uut)
+        mutations = get_mutation_set(uut)
         if all(password in mutation for mutation in mutations):
             raise Exception('password always appear')
 
@@ -111,7 +89,7 @@ class LoginTestCase(UrlTestCase):
         username = 'theusername'
         password = 'pass'
         uut = kurl.Login(username=username, password=password, fuzz_username=True, fuzz_password=False, fuzz_delims=True)
-        mutations = get_all_mutations(uut)
+        mutations = get_mutation_set(uut)
         if not all(password in mutation for mutation in mutations):
             raise Exception('password does not always appear')
 
@@ -121,7 +99,7 @@ class LoginTestCase(UrlTestCase):
         delim1 = ':'
         delim2 = '@'
         uut = kurl.Login(username=username, password=password, fuzz_username=False, fuzz_password=False, fuzz_delims=True)
-        mutations = get_all_mutations(uut)
+        mutations = get_mutation_set(uut)
         if all(delim1 in mutation for mutation in mutations):
             raise Exception('"%s" always appear' % delim1)
         if all(delim2 in mutation for mutation in mutations):
@@ -133,7 +111,7 @@ class LoginTestCase(UrlTestCase):
         delim1 = ':'
         delim2 = '@'
         uut = kurl.Login(username=username, password=password, fuzz_username=True, fuzz_password=True, fuzz_delims=False)
-        mutations = get_all_mutations(uut)
+        mutations = get_mutation_set(uut)
         if not all(delim1 in mutation for mutation in mutations):
             raise Exception('"%s" does not always appear' % delim1)
         if not all(delim2 in mutation for mutation in mutations):
@@ -153,7 +131,7 @@ def is_int(s):
         return False
 
 
-class DecimalNumberTestCase(UrlTestCase):
+class DecimalNumberTestCase(BaseTestCase):
     '''
     Test for the URL's DecimalNumber field
     '''
@@ -166,14 +144,14 @@ class DecimalNumberTestCase(UrlTestCase):
 
     def test_performing_string_mutations(self):
         uut = kurl.DecimalNumber(5)
-        mutations = get_all_mutations(uut)
+        mutations = get_mutation_set(uut)
         int_cnt = sum(is_int(x) for x in mutations)
         self.assertLess(int_cnt, len(mutations))
         non_int_cnt = sum(not is_int(x) for x in mutations)
         self.assertGreater(non_int_cnt, 5)
 
 
-class HostPortTestCase(UrlTestCase):
+class HostPortTestCase(BaseTestCase):
     '''
     Tests for URL HostPort
     '''
@@ -193,7 +171,7 @@ class HostPortTestCase(UrlTestCase):
         host = 'www.example.com'
         port = 1234
         uut = kurl.HostPort(host, port, fuzz_host=True, fuzz_port=False, fuzz_delim=False)
-        mutations = get_all_mutations(uut)
+        mutations = get_mutation_set(uut)
         if all(host in mutation for mutation in mutations):
             raise Exception('host always appear')
 
@@ -201,7 +179,7 @@ class HostPortTestCase(UrlTestCase):
         host = 'www.example.com'
         port = 1234
         uut = kurl.HostPort(host, port, fuzz_host=False, fuzz_port=True, fuzz_delim=True)
-        mutations = get_all_mutations(uut)
+        mutations = get_mutation_set(uut)
         if not all(host in mutation for mutation in mutations):
             raise Exception('host does not always appear')
 
@@ -209,7 +187,7 @@ class HostPortTestCase(UrlTestCase):
         host = 'www.example.com'
         port = '1234'
         uut = kurl.HostPort(host, int(port), fuzz_host=False, fuzz_port=True, fuzz_delim=False)
-        mutations = get_all_mutations(uut)
+        mutations = get_mutation_set(uut)
         if all(port in mutation for mutation in mutations):
             raise Exception('port always appear')
 
@@ -217,7 +195,7 @@ class HostPortTestCase(UrlTestCase):
         host = 'www.example.com'
         port = '1234'
         uut = kurl.HostPort(host, int(port), fuzz_host=True, fuzz_port=False, fuzz_delim=True)
-        mutations = get_all_mutations(uut)
+        mutations = get_mutation_set(uut)
         if not all(port in mutation for mutation in mutations):
             raise Exception('port does not always appear')
 
@@ -226,7 +204,7 @@ class HostPortTestCase(UrlTestCase):
         port = '1234'
         delim = ':'
         uut = kurl.HostPort(host, int(port), fuzz_host=False, fuzz_port=False, fuzz_delim=True)
-        mutations = get_all_mutations(uut)
+        mutations = get_mutation_set(uut)
         if all(delim in mutation for mutation in mutations):
             raise Exception('delim always appear')
 
@@ -235,47 +213,47 @@ class HostPortTestCase(UrlTestCase):
         port = '1234'
         delim = ':'
         uut = kurl.HostPort(host, int(port), fuzz_host=True, fuzz_port=True, fuzz_delim=False)
-        mutations = get_all_mutations(uut)
+        mutations = get_mutation_set(uut)
         if not all(delim in mutation for mutation in mutations):
             raise Exception('delim does not always appear')
 
 
-class HostNameTestCase(UrlTestCase):
+class HostNameTestCase(BaseTestCase):
     def test_not_implemented(self):
         raise NotImplemented
 
 
-class SearchTestCase(UrlTestCase):
+class SearchTestCase(BaseTestCase):
     def test_not_implemented(self):
         raise NotImplemented
 
 
-class PathTestCase(UrlTestCase):
+class PathTestCase(BaseTestCase):
     def test_not_implemented(self):
         raise NotImplemented
 
 
-class FTypeTestCase(UrlTestCase):
+class FTypeTestCase(BaseTestCase):
     def test_not_implemented(self):
         raise NotImplemented
 
 
-class FtpUrlTestCase(UrlTestCase):
+class FtpUrlTestCase(BaseTestCase):
     def test_not_implemented(self):
         raise NotImplemented
 
 
-class EmailAddressTestCase(UrlTestCase):
+class EmailAddressTestCase(BaseTestCase):
     def test_not_implemented(self):
         raise NotImplemented
 
 
-class EmailUrlTestCase(UrlTestCase):
+class EmailUrlTestCase(BaseTestCase):
     def test_not_implemented(self):
         raise NotImplemented
 
 
-class HttpUrlTestCase(UrlTestCase):
+class HttpUrlTestCase(BaseTestCase):
 
     def test_constructed_url_full(self):
         '''
@@ -336,7 +314,7 @@ class HttpUrlTestCase(UrlTestCase):
         self.assertEqual(actual, expected)
 
 
-class FromStringTests(UrlTestCase):
+class FromStringTests(BaseTestCase):
 
     def _test_vanilla_supported(self, url, expected_class):
         container = kurl.url_from_string(url)

@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Kitty.  If not, see <http://www.gnu.org/licenses/>.
 
-import unittest
-import logging
 import json
 
 from katnip.legos import json as kjson
@@ -24,55 +22,12 @@ from kitty.model import Template
 from kitty.model import String, UInt32
 from kitty.model import ENC_INT_DEC
 
+from common import BaseTestCase, get_mutation_set, warp_with_template
+
 test_logger = None
 
 
-def get_test_logger():
-    global test_logger
-    if test_logger is None:
-        logger = logging.getLogger('JSON Legos')
-        logger.setLevel(logging.DEBUG)
-        formatter = logging.Formatter(
-            '[%(asctime)s] [%(levelname)s] -> %(message)s'
-        )
-        handler = logging.FileHandler('logs/test_lego_json.log', mode='w')
-        handler.setFormatter(formatter)
-        handler.setLevel(logging.DEBUG)
-        logger.addHandler(handler)
-        test_logger = logger
-    return test_logger
-
-
-def warp_with_template(json_obj):
-    '''
-    wrap a lego with template
-    '''
-    t = Template(name='test template', fields=json_obj)
-    return t
-
-
-def get_mutation_set(t):
-    '''
-    return a list of all mutations for the template
-    '''
-    res = set([])
-    res.add(t.render().bytes)
-    while t.mutate():
-        res.add(t.render().bytes)
-    return res
-
-
-class JsonTestCase(unittest.TestCase):
-
-    def setUp(self):
-        self.logger = get_test_logger()
-        self.logger.info('TESTING METHOD: %s', self._testMethodName)
-
-    def prepare(self):
-        pass
-
-
-class JsonBooleanTests(JsonTestCase):
+class JsonBooleanTests(BaseTestCase):
 
     def test_no_value_2_mutations(self):
         '''
@@ -124,7 +79,7 @@ class JsonBooleanTests(JsonTestCase):
         self.assertGreater(t.num_mutations(), 10)
 
 
-class JsonNullTests(JsonTestCase):
+class JsonNullTests(BaseTestCase):
 
     def test_not_fuzzable_num_mutations_zero(self):
         '''
@@ -146,7 +101,7 @@ class JsonNullTests(JsonTestCase):
             self.assertEqual(t.render().bytes, st.render().bytes)
 
 
-class JsonStringTests(JsonTestCase):
+class JsonStringTests(BaseTestCase):
 
     def test_valid_string_format(self):
         '''
@@ -178,7 +133,7 @@ class JsonStringTests(JsonTestCase):
             self.assertEqual(t.render().bytes, '"%s"' % st.render().bytes)
 
 
-class JsonObjectTests(JsonTestCase):
+class JsonObjectTests(BaseTestCase):
 
     def test_int_in_object(self):
         '''
@@ -328,7 +283,7 @@ class JsonObjectTests(JsonTestCase):
         self.assertEqual(reference, result)
 
 
-class JsonArrayTests(JsonTestCase):
+class JsonArrayTests(BaseTestCase):
 
     def test_ints_in_array(self):
         '''
@@ -437,7 +392,7 @@ class JsonArrayTests(JsonTestCase):
             self.assertEqual(i, j)
 
 
-class ListToJsonArrayTests(JsonTestCase):
+class ListToJsonArrayTests(BaseTestCase):
     '''
     test the generated json list from :func:`~katnip.legos.json.list_to_JsonArray`
     '''
@@ -476,7 +431,7 @@ class ListToJsonArrayTests(JsonTestCase):
         self._compare_to_ref([1, None, True, 'blah'])
 
 
-class DictToJsonObjectTests(JsonTestCase):
+class DictToJsonObjectTests(BaseTestCase):
     '''
     test the generated json object from :func:`~katnip.legos.json.dict_to_JsonObject`
     '''
@@ -528,7 +483,7 @@ class DictToJsonObjectTests(JsonTestCase):
         })
 
 
-class StrToJson(JsonTestCase):
+class StrToJson(BaseTestCase):
     '''
     test the generated json object from :func:`~katnip.legos.json.str_to_json`
     '''

@@ -1,62 +1,34 @@
-import unittest
-import logging
+# Copyright (C) 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
+#
+# This file is part of Kitty.
+#
+# Kitty is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#
+# Kitty is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Kitty.  If not, see <http://www.gnu.org/licenses/>.
 
 from katnip.legos.dynamic import DynamicExtended, DynamicInt, DynamicString
-from kitty.model import Template
 from kitty.model import String
 from kitty.model import BE32
-from kitty.model import ENC_INT_DEC, ENC_STR_BASE64_NO_NL
+from kitty.model import ENC_STR_BASE64_NO_NL
+
+from common import BaseTestCase, get_mutation_set
 
 
-test_logger = None
-
-
-def get_test_logger():
-    global test_logger
-    if test_logger is None:
-        logger = logging.getLogger('DynamicExtended Legos')
-        logger.setLevel(logging.DEBUG)
-        formatter = logging.Formatter(
-            '[%(asctime)s] [%(levelname)s] -> %(message)s'
-        )
-        handler = logging.FileHandler('logs/test_lego_json.log', mode='w')
-        handler.setFormatter(formatter)
-        handler.setLevel(logging.DEBUG)
-        logger.addHandler(handler)
-        test_logger = logger
-    return test_logger
-
-
-def warp_with_template(json_obj):
-    '''
-    wrap a lego with template
-    '''
-    t = Template(name='test template', fields=json_obj)
-    return t
-
-
-def get_mutation_set(t):
-    '''
-    return a list of all mutations for the template
-    '''
-    res = set([])
-    res.add(t.render().bytes)
-    while t.mutate():
-        res.add(t.render().bytes)
-    t.reset()
-    return res
-
-
-class DynamicTestCase(unittest.TestCase):
+class DynamicTestCase(BaseTestCase):
 
     def setUp(self):
-        self.logger = get_test_logger()
-        self.logger.info('TESTING METHOD: %s', self._testMethodName)
+        super(DynamicTestCase, self).setUp()
         self.def_value = '1234'
         self.the_key = 'the_key'
-
-    def prepare(self):
-        pass
 
 
 class DynamicExtendedTestCase(DynamicTestCase):
