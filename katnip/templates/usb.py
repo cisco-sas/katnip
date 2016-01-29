@@ -25,6 +25,7 @@ http://www.usb.org/developers/docs/usb20_docs/usb_20_042814.zip
 
 from kitty.model import *
 from katnip.legos.dynamic import DynamicInt
+from katnip.legos.usb_hid import GenerateHidReport
 
 
 class _StandardRequestCodes:
@@ -517,6 +518,28 @@ adc_as_format_type_descriptor = Descriptor(
     ])
 
 
+adc_hid_descriptor = Descriptor(
+    name='adc_hid_descriptor',
+    descriptor_type=_DescriptorTypes.HID,
+    fields=[
+        DynamicInt('bcdHID', LE16(value=0x1001)),
+        DynamicInt('bCountryCode', UInt8(value=0x00)),
+        DynamicInt('bNumDescriptors', UInt8(value=0x01)),
+        DynamicInt('bDescriptorType2', UInt8(value=_DescriptorTypes.HID_REPORT)),
+        DynamicInt('wDescriptorLength', LE16(value=0x2b)),
+    ]
+)
+
+# this descriptor is based on umap
+# https://github.com/nccgroup/umap
+# commit 3ad812135f8c34dcde0e055d1fefe30500196c0f
+adc_report_descriptor = Template(
+    name='hid_report_descriptor',
+    fields=GenerateHidReport(
+        '050C0901A1011500250109E909EA75019502810209E209008106050B092095018142050C09009503810226FF000900750895038102090095049102C0'.decode('hex')
+    )
+)
+
 ###################################################
 #              HID Class Templates                #
 ###################################################
@@ -533,71 +556,13 @@ hid_descriptor = Descriptor(
     ])
 
 
-def _make_name(base, postfix):
-    if base is None:
-        return None
-    return '%s_%s' % (name, postfix)
-
-
-def gen_command(cmd):
-    def _(param, name=None, fuzzable=True):
-        return Container(fields=[UInt8(name='command', value=cmd), UInt8(name='param', value=param)], name=name, fuzzable=fuzzable)
-    return _
-
-UsagePage = gen_command(0x05)
-Usage = gen_command(0x09)
-Collection = gen_command(0xa1)
-ReportSize = gen_command(0x75)
-ReportCount = gen_command(0x95)
-Input = gen_command(0x81)
-UsageMinimum = gen_command(0x19)
-UsageMaximum = gen_command(0x29)
-LogicalMinimum = gen_command(0x15)
-LogicalMaximum = gen_command(0x25)
-
-
-def EndCollection(name=None, fuzzable=True):
-    return UInt8(value=0xc0, name=name, fuzzable=fuzzable)
-
-
 # this descriptor is based on umap
 # https://github.com/nccgroup/umap
 # commit 3ad812135f8c34dcde0e055d1fefe30500196c0f
-hid_report_descriptor = Container(
+hid_report_descriptor = Template(
     name='hid_report_descriptor',
-    fields=OneOf(
-        fields=[
-            Container(
-                name='generation',
-                fields=[
-                    UsagePage(0x01),
-                    Usage(0x06),
-                    Collection(0x01),
-                    UsagePage(0x07),
-                    UsageMinimum(0xE0),
-                    UsageMaximum(0xE7),
-                    LogicalMinimum(0x00),
-                    LogicalMaximum(0x01),
-                    ReportSize(0x01),
-                    ReportCount(0x08),
-                    Input(0x02),
-                    ReportCount(0x01),
-                    ReportSize(0x08),
-                    Input(0x01),
-                    UsageMinimum(0x00),
-                    UsageMaximum(0x65),
-                    LogicalMinimum(0x00),
-                    LogicalMaximum(0x65),
-                    ReportSize(0x08),
-                    ReportCount(0x01),
-                    Input(0x00),
-                    EndCollection(),
-                ]),
-            MutableField(
-                name='mutation',
-                value='05010906A101050719E029E7150025017501950881029501750881011900296515002565750895018100C0'.decode('hex')
-            )
-        ]
+    fields=GenerateHidReport(
+        '05010906A101050719E029E7150025017501950881029501750881011900296515002565750895018100C0'.decode('hex')
     )
 )
 
