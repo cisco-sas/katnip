@@ -4,7 +4,7 @@ Introduction
 What is Katnip?
 ---------------
 
-Katnip is a repository of implementations and extensions for Kitty (link TBD).
+Katnip is a repository of implementations and extensions for Kitty_.
 
 While Kitty defines the base classes and syntax,
 it contains no specific implementation for any of them.
@@ -33,3 +33,5 @@ Contribution FAQ
 
 *Want to share you implementation?*
    Thank You! Please submit a pull request.
+
+.. _Kitty: https://github.com/cisco-sas/kitty
