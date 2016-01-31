@@ -17,7 +17,10 @@
 
 '''
 JSON legos - simplified fuzzing of JSON-based protocols
+
+.. todo:: ``JsonNumber``
 '''
+from __future__ import absolute_import
 import json
 import types
 from kitty.model import Container
@@ -178,7 +181,7 @@ def dict_to_JsonObject(the_dict, name=None, ctx=None):
         if v is None:
             val = JsonNull(name=ctx.uname(k), fuzzable=False)
         elif isinstance(v, types.BooleanType):
-            val = JsonBoolean(name=ctx.uname(k), value=None, fuzzable=False)
+            val = JsonBoolean(name=ctx.uname(k), value=v, fuzzable=True)
         elif isinstance(v, types.StringTypes):
             val = JsonString(name=ctx.uname(k), value=v, fuzzable=True)
         elif isinstance(v, types.ListType):
@@ -215,7 +218,7 @@ def list_to_JsonArray(the_list, name=None, ctx=None):
         if v is None:
             elements.append(JsonNull(ctx.uname('null'), fuzzable=False))
         elif isinstance(v, types.BooleanType):
-            elements.append(JsonBoolean(ctx.uname('bool'), value=None, fuzzable=False))
+            elements.append(JsonBoolean(ctx.uname('bool'), value=v, fuzzable=True))
         elif isinstance(v, types.StringTypes):
             elements.append(JsonString(ctx.uname('string'), v, fuzzable=True))
         elif isinstance(v, types.ListType):
@@ -231,10 +234,11 @@ def list_to_JsonArray(the_list, name=None, ctx=None):
     return JsonArray(name=ctx.uname(name, False), values=elements)
 
 
-def str_to_json(json_str):
+def str_to_json(json_str, name=None):
     '''
     Create a JSON lego based on a json string.
 
+    :param name: name of the generated container
     :param json_str: json string to base the template on
     :rtype: :class:`~katnip.legos.json.JsonArray` or :class:`~katnip.legos.json.JsonObject`
     :return: JSON object or JSON array.
@@ -242,9 +246,9 @@ def str_to_json(json_str):
     parsed = json.loads(json_str)
     result = None
     if type(parsed) == list:
-        result = list_to_JsonArray(parsed)
+        result = list_to_JsonArray(parsed, name)
     elif type(parsed) == dict:
-        result = dict_to_JsonObject(parsed)
+        result = dict_to_JsonObject(parsed, name)
     else:
         raise ValueError('parsing json string resulted in unsupported type (%s)' % type(parsed))
     return result

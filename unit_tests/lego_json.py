@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Kitty.  If not, see <http://www.gnu.org/licenses/>.
 
-import unittest
-import logging
 import json
 
 from katnip.legos import json as kjson
@@ -24,55 +22,12 @@ from kitty.model import Template
 from kitty.model import String, UInt32
 from kitty.model import ENC_INT_DEC
 
+from common import BaseTestCase, get_mutation_set, warp_with_template
+
 test_logger = None
 
 
-def get_test_logger():
-    global test_logger
-    if test_logger is None:
-        logger = logging.getLogger('JSON Legos')
-        logger.setLevel(logging.DEBUG)
-        formatter = logging.Formatter(
-            '[%(asctime)s] [%(levelname)s] -> %(message)s'
-        )
-        handler = logging.FileHandler('logs/test_lego_json.log', mode='w')
-        handler.setFormatter(formatter)
-        handler.setLevel(logging.DEBUG)
-        logger.addHandler(handler)
-        test_logger = logger
-    return test_logger
-
-
-def warp_with_template(json_obj):
-    '''
-    wrap a lego with template
-    '''
-    t = Template(name='test template', fields=json_obj)
-    return t
-
-
-def get_mutation_set(t):
-    '''
-    return a list of all mutations for the template
-    '''
-    res = set([])
-    res.add(t.render().bytes)
-    while t.mutate():
-        res.add(t.render().bytes)
-    return res
-
-
-class JsonTestCase(unittest.TestCase):
-
-    def setUp(self):
-        self.logger = get_test_logger()
-        self.logger.info('TESTING METHOD: %s', self._testMethodName)
-
-    def prepare(self):
-        pass
-
-
-class JsonBooleanTests(JsonTestCase):
+class JsonBooleanTests(BaseTestCase):
 
     def test_no_value_2_mutations(self):
         '''
@@ -124,7 +79,7 @@ class JsonBooleanTests(JsonTestCase):
         self.assertGreater(t.num_mutations(), 10)
 
 
-class JsonNullTests(JsonTestCase):
+class JsonNullTests(BaseTestCase):
 
     def test_not_fuzzable_num_mutations_zero(self):
         '''
@@ -146,7 +101,7 @@ class JsonNullTests(JsonTestCase):
             self.assertEqual(t.render().bytes, st.render().bytes)
 
 
-class JsonStringTests(JsonTestCase):
+class JsonStringTests(BaseTestCase):
 
     def test_valid_string_format(self):
         '''
@@ -178,7 +133,7 @@ class JsonStringTests(JsonTestCase):
             self.assertEqual(t.render().bytes, '"%s"' % st.render().bytes)
 
 
-class JsonObjectTests(JsonTestCase):
+class JsonObjectTests(BaseTestCase):
 
     def test_int_in_object(self):
         '''
@@ -232,28 +187,103 @@ class JsonObjectTests(JsonTestCase):
         '''
         Verify that a JsonObject is encoded properly in a JsonObject
         '''
-        raise NotImplementedError
+        t = warp_with_template(
+            kjson.JsonObject(
+                name='obj1',
+                member_dict={
+                    'obj2a': kjson.JsonObject(
+                        name='obj2a',
+                        member_dict={
+                            'an_int': UInt32(value=1, encoder=ENC_INT_DEC),
+                            'a_string': kjson.JsonString(name='some_name', value='some string')
+                        }
+                    )
+                }
+            )
+        )
+        reference = {
+            'obj2a': {
+                'an_int': 1,
+                'a_string': 'some string',
+            }
+        }
+        rendered = t.render().bytes
+        self.logger.debug(rendered)
+        result = json.loads(rendered)
+        reference = json.loads(json.dumps(reference))
+        self.assertEqual(reference, result)
 
     def test_array_in_object(self):
         '''
         Verify that a JsonArray is encoded properly in a JsonObject
         '''
-        raise NotImplementedError
+        t = warp_with_template(
+            kjson.JsonObject(
+                name='obj1',
+                member_dict={
+                    'arr': kjson.JsonArray(
+                        name='arr',
+                        values=[UInt32(value=x, encoder=ENC_INT_DEC) for x in range(0, 10)]
+                    )
+                }
+            )
+        )
+        reference = {'arr': list(range(0, 10))}
+        rendered = t.render().bytes
+        self.logger.debug(rendered)
+        result = json.loads(rendered)
+        reference = json.loads(json.dumps(reference))
+        self.assertEqual(reference, result)
 
     def test_multiple_types_in_object(self):
         '''
         Verify that multiple types are encoded properly in a JsonObject
         '''
-        raise NotImplementedError
+        t = warp_with_template(
+            kjson.JsonObject(
+                name='obj1',
+                member_dict={
+                    'obj2a': kjson.JsonObject(
+                        name='obj2a',
+                        member_dict={
+                        }
+                    ),
+                    'an_int': UInt32(value=1, encoder=ENC_INT_DEC),
+                    'a_string': kjson.JsonString(name='some_name', value='some string')
+                }
+            )
+        )
+        reference = {
+            'obj2a': {
+            },
+            'an_int': 1,
+            'a_string': 'some string',
+        }
+        rendered = t.render().bytes
+        self.logger.debug(rendered)
+        result = json.loads(rendered)
+        reference = json.loads(json.dumps(reference))
+        self.assertEqual(reference, result)
 
     def test_empty_object(self):
         '''
         Verify that an empty object is encoded properly json
         '''
-        raise NotImplementedError
+        t = warp_with_template(
+            kjson.JsonObject(
+                name='obj1',
+                member_dict={}
+            )
+        )
+        reference = {}
+        rendered = t.render().bytes
+        self.logger.debug(rendered)
+        result = json.loads(rendered)
+        reference = json.loads(json.dumps(reference))
+        self.assertEqual(reference, result)
 
 
-class JsonArrayTests(JsonTestCase):
+class JsonArrayTests(BaseTestCase):
 
     def test_ints_in_array(self):
         '''
@@ -315,13 +345,38 @@ class JsonArrayTests(JsonTestCase):
         '''
         Verify that a list of JsonObjects is encoded properly in a JsonArray
         '''
-        raise NotImplementedError
+        the_list = []
+        for i in range(10):
+            the_list.append(kjson.JsonObject(name='obj_%d' % i, member_dict={'internal': UInt32(value=i, encoder=ENC_INT_DEC)}, fuzz_keys=False))
+        t = warp_with_template(kjson.JsonArray(name='test', values=the_list))
+        rendered = t.render().bytes
+        self.logger.debug('rendered: %s', rendered)
+        self.logger.debug('rendered (hex): %s', rendered.encode('hex'))
+        res = json.loads(rendered)
+        self.assertEqual(len(res), 10)
+        for i in range(10):
+            self.assertEqual(res[i]['internal'], i)
 
     def test_arrays_in_array(self):
         '''
         Verify that a list of JsonArrays is encoded properly in a JsonArray
         '''
-        raise NotImplementedError
+        the_list = []
+        for i in range(10):
+            the_list.append(
+                kjson.JsonArray(
+                    name='arr_%d' % i,
+                    values=[
+                        UInt32(value=x, encoder=ENC_INT_DEC) for x in range(i, i + 5)
+                    ]))
+        t = warp_with_template(kjson.JsonArray(name='test', values=the_list))
+        rendered = t.render().bytes
+        self.logger.debug('rendered: %s', rendered)
+        self.logger.debug('rendered (hex): %s', rendered.encode('hex'))
+        res = json.loads(rendered)
+        self.assertEqual(len(res), 10)
+        for i in range(10):
+            self.assertEqual(res[i], list(range(i, i + 5)))
 
     def test_empty_array(self):
         '''
@@ -337,7 +392,172 @@ class JsonArrayTests(JsonTestCase):
             self.assertEqual(i, j)
 
 
-class JsonFuncArrayFromStringTests(JsonTestCase):
+class ListToJsonArrayTests(BaseTestCase):
+    '''
+    test the generated json list from :func:`~katnip.legos.json.list_to_JsonArray`
+    '''
 
-    def test_(self):
-        raise NotImplementedError
+    def _compare_to_ref(self, ref_list):
+        uut = kjson.list_to_JsonArray(the_list=ref_list, name='uut')
+        res = json.loads(uut.render().bytes)
+        ref = json.loads(json.dumps(ref_list))
+        self.assertEqual(res, ref)
+
+    def test_empty_list(self):
+        self._compare_to_ref([])
+
+    def test_list_of_empty_lists(self):
+        self._compare_to_ref([[], [], []])
+
+    def test_list_ints(self):
+        self._compare_to_ref([1, 2, 3])
+
+    def test_list_strings(self):
+        self._compare_to_ref(['a', 'b', 'c', 'd'])
+
+    def test_list_of_none(self):
+        self._compare_to_ref([None, None, None])
+
+    def test_list_of_booleans(self):
+        self._compare_to_ref([True, True, False, True, False, False, True])
+
+    def test_list_of_empty_objects(self):
+        self._compare_to_ref([{}, {}, {}])
+
+    def test_list_of_objects(self):
+        self._compare_to_ref([{'a': 1, 'b': 2}, {'c': 1, 'a': 2}, {'e': 15, 'v': 3}])
+
+    def test_list_of_various(self):
+        self._compare_to_ref([1, None, True, 'blah'])
+
+
+class DictToJsonObjectTests(BaseTestCase):
+    '''
+    test the generated json object from :func:`~katnip.legos.json.dict_to_JsonObject`
+    '''
+
+    def _compare_to_ref(self, ref_dict):
+        uut = kjson.dict_to_JsonObject(the_dict=ref_dict, name='uut')
+        res = json.loads(uut.render().bytes)
+        ref = json.loads(json.dumps(ref_dict))
+        self.assertEqual(res, ref)
+
+    def test_empty_object(self):
+        self._compare_to_ref({})
+
+    def test_object_with_int(self):
+        self._compare_to_ref({'a': 1})
+
+    def test_object_with_null(self):
+        self._compare_to_ref({'a': None})
+
+    def test_object_with_bool_true(self):
+        self._compare_to_ref({'a': True})
+
+    def test_object_with_bool_false(self):
+        self._compare_to_ref({'a': False})
+
+    def test_object_with_empty_arr(self):
+        self._compare_to_ref({'a': []})
+
+    def test_object_with_full_arr(self):
+        self._compare_to_ref({'a': [1, 2, 3]})
+
+    def test_object_with_empty_object(self):
+        self._compare_to_ref({'a': {}})
+
+    def test_object_with_full_object(self):
+        self._compare_to_ref({'a': {'a': 1, 'b': 2}})
+
+    def test_object_of_various(self):
+        self._compare_to_ref({
+            'int': 123,
+            'negative': -123,
+            'string': 'baum',
+            'null': None,
+            'list': [1, 2, 3],
+            'obj': {
+                'mem1': '1',
+                'mem2': 2,
+            }
+        })
+
+
+class StrToJson(BaseTestCase):
+    '''
+    test the generated json object from :func:`~katnip.legos.json.str_to_json`
+    '''
+
+    def _compare_to_ref(self, ref_str):
+        uut = kjson.str_to_json(ref_str, name='uut')
+        res = json.loads(uut.render().bytes)
+        ref = json.loads(ref_str)
+        self.assertEqual(res, ref)
+
+    def test_empty_object(self):
+        self._compare_to_ref('{}')
+
+    def test_object_with_int(self):
+        self._compare_to_ref('{"a": 1}')
+
+    def test_object_with_null(self):
+        self._compare_to_ref('{"a": null}')
+
+    def test_object_with_bool_true(self):
+        self._compare_to_ref('{"a": true}')
+
+    def test_object_with_bool_false(self):
+        self._compare_to_ref('{"a": false}')
+
+    def test_object_with_empty_arr(self):
+        self._compare_to_ref('{"a": []}')
+
+    def test_object_with_full_arr(self):
+        self._compare_to_ref('{"a": [1, 2, 3]}')
+
+    def test_object_with_empty_object(self):
+        self._compare_to_ref('{"a": {}}')
+
+    def test_object_with_full_object(self):
+        self._compare_to_ref('{"a": {"a": 1, "b": 2}}')
+
+    def test_object_of_various(self):
+        self._compare_to_ref('''{
+            "int": 123,
+            "negative": -123,
+            "string": "baum",
+            "null": null,
+            "list": [1, 2, 3],
+            "obj": {
+                "mem1": "1",
+                "mem2": 2
+            },
+            "bool": true
+        }''')
+
+    def test_empty_list(self):
+        self._compare_to_ref('[]')
+
+    def test_list_of_empty_lists(self):
+        self._compare_to_ref('[[], [], []]')
+
+    def test_list_ints(self):
+        self._compare_to_ref('[1, 2, 3]')
+
+    def test_list_strings(self):
+        self._compare_to_ref('["a", "b", "c", "d"]')
+
+    def test_list_of_none(self):
+        self._compare_to_ref('[null, null, null]')
+
+    def test_list_of_booleans(self):
+        self._compare_to_ref('[true, true, false, true]')
+
+    def test_list_of_empty_objects(self):
+        self._compare_to_ref('[{}, {}, {}]')
+
+    def test_list_of_objects(self):
+        self._compare_to_ref('[{"a": 1, "b": 2}, {"c": 1, "a": 2}, {"e": 15, "v": 3}]')
+
+    def test_list_of_various(self):
+        self._compare_to_ref('[1, null, true, "blah"]')

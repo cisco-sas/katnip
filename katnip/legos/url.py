@@ -22,7 +22,6 @@ HTTP, HTTPS, FTP, FTPS
 
 .. todo:: URL fragments
 '''
-import re
 from urlparse import urlparse
 from kitty.model import Container, OneOf
 from kitty.model import BaseField, String, Delimiter, BitField, Group
@@ -141,6 +140,9 @@ class Login(Container):
                 fields.append(Delimiter(name=_merge(name, 'username password delim'), value=':', fuzzable=fuzz_delims))
                 fields.append(_to_string_field(_merge('name', 'password'), password, fuzzable=fuzz_password))
             fields.append(Delimiter(name=_merge(name, 'username hostport delim'), value='@', fuzzable=fuzz_delims))
+        elif password is not None:
+            raise KittyException('Login cannot have password without username')
+
         super(Login, self).__init__(name=name, fields=fields, fuzzable=fuzzable)
 
 
