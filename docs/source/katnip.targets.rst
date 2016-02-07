@@ -13,6 +13,7 @@ Submodules
 
    katnip.targets.file
    katnip.targets.raw_udp
+   katnip.targets.serial
    katnip.targets.ssl
    katnip.targets.tcp
    katnip.targets.udp
