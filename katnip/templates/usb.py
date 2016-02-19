@@ -102,6 +102,10 @@ class SizedPt(Container):
         super(SizedPt, self).__init__(name=name, fields=fields)
 
 
+# ################### #
+# Generic descriptors #
+# ################### #
+
 # Device descriptor
 # Section 9.6.1, page 261
 device_descriptor = Descriptor(
@@ -110,7 +114,7 @@ device_descriptor = Descriptor(
     fields=[
         LE16(name='bcdUSB', value=0x0100),  # USB 2.0 is reported as 0x0200, USB 1.1 as 0x0110 and USB 1.0 as 0x0100
         UInt8(name='bDeviceClass', value=0),
-        UInt8(name='bDevuceSubClass', value=0),
+        UInt8(name='bDeviceSubClass', value=0),
         UInt8(name='bDeviceProtocol', value=0),
         UInt8(name='bMaxPacketSize', value=64),  # valid sizes: 8,16,32,64
         LE16(name='idVendor', value=0),
@@ -130,7 +134,7 @@ device_qualifier_descriptor = Descriptor(
     fields=[
         LE16(name='bcdUSB', value=0x0100),  # USB 2.0 is reported as 0x0200, USB 1.1 as 0x0110 and USB 1.0 as 0x0100
         UInt8(name='bDeviceClass', value=0),
-        UInt8(name='bDevuceSubClass', value=0),
+        UInt8(name='bDeviceSubClass', value=0),
         UInt8(name='bDeviceProtocol', value=0),
         UInt8(name='bMaxPacketSize', value=0),  # valid sizes: 8,16,32,64
         UInt8(name='bNumConfigurations', value=0),
@@ -226,9 +230,21 @@ hub_descriptor = Descriptor(
     ])
 
 
+# TODO: usbcsendpoint_descriptor
+# TODO: usbcsinterface_descriptor
+
 ###################################################
 #              Mass Storage Templates             #
 ###################################################
+
+# TODO: scsi_test_unit_ready_response
+# TODO: scsi_send_diagnostic_response
+# TODO: scsi_prevent_allow_medium_removal_response
+# TODO: scsi_write_10_response
+# TODO: scsi_write_6_response
+# TODO: scsi_read_6_response
+# TODO: scsi_verify_10_response
+
 
 # USBMassStorageClass
 reset_request = Template(
@@ -243,8 +259,8 @@ max_lun = Template(
 
 
 # Request Sence - FuzzableUSBMassStorageInterface
-SCSI_op_code_0x03 = Template(
-    name='SCSI_op_code_0x03',
+scsi_request_sense_response = Template(
+    name='scsi_request_sense_response',
     fields=[
         UInt8(name='ResponseCode', value=0x70),
         UInt8(name='VALID', value=0x00),
@@ -255,22 +271,23 @@ SCSI_op_code_0x03 = Template(
         UInt8(name='EOM', value=0x00),
         UInt8(name='FILEMARK', value=0x00),
         BE32(name='Information', value=0x00),
-        SizedPt(name='Additional_Sense_data',
-                fields=[
-                    BE32(name='CmdSpecificInfo', value=0x00),
-                    UInt8(name='ASC', value=0x00),
-                    UInt8(name='ASCQ', value=0x00),
-                    UInt8(name='FRUC', value=0x00),
-                    UInt8(name='SenseKeySpecific_0', value=0x00),
-                    UInt8(name='SenseKeySpecific_1', value=0x00),
-                    UInt8(name='SenseKeySpecific_2', value=0x00),
-                ])
+        SizedPt(
+            name='Additional_Sense_data',
+            fields=[
+                BE32(name='CmdSpecificInfo', value=0x00),
+                UInt8(name='ASC', value=0x00),
+                UInt8(name='ASCQ', value=0x00),
+                UInt8(name='FRUC', value=0x00),
+                UInt8(name='SenseKeySpecific_0', value=0x00),
+                UInt8(name='SenseKeySpecific_1', value=0x00),
+                UInt8(name='SenseKeySpecific_2', value=0x00),
+            ])
     ])
 
 
 # Inquiry - FuzzableUSBMassStorageInterface
-SCSI_op_code_0x12 = Template(
-    name='SCSI_op_code_0x12',
+scsi_inquiry_response = Template(
+    name='scsi_inquiry_response',
     fields=[
         UInt8(name='Peripheral', value=0x00),
         UInt8(name='Removable', value=0x80),
@@ -281,18 +298,29 @@ SCSI_op_code_0x12 = Template(
                     UInt8(name='Sccstp', value=0x00),
                     UInt8(name='Bqueetc', value=0x00),
                     UInt8(name='CmdQue', value=0x00),
-                    Pad(8 * 8, fields=String(name='VendorID', value='HeloKitt', max_size=8)),
-                    Pad(16 * 8, fields=String(name='ProductID', value='SAS - HelloKitty', max_size=16)),
-                    Pad(4 * 8, fields=String(name='productRev', value='1234', max_size=4)),
+                    Pad(8 * 8, fields=String(name='VendorID', value='Paul', max_size=8)),
+                    Pad(16 * 8, fields=String(name='ProductID', value='Atreides', max_size=16)),
+                    Pad(4 * 8, fields=String(name='productRev', value='1718', max_size=4)),
                 ])
     ])
 
 
 # Mode Sence - FuzzableUSBMassStorageInterface
-SCSI_op_code_0x1a_or_0x5a = Template(
-    name='SCSI_op_code_0x1a_or_0x5a',
+scsi_mode_sense_6_response = Template(
+    name='scsi_mode_sense_6_response',
     fields=[
-        SizeInBytes(name='bLength', sized_field='SCSI_op_code_0x1a_or_0x5a', length=8, fuzzable=True),
+        SizeInBytes(name='bLength', sized_field='scsi_mode_sense_6_response', length=8, fuzzable=True),
+        UInt8(name='MediumType', value=0x00),
+        UInt8(name='Device_Specific_Param', value=0x00),
+        SizedPt(name='Mode_Parameter_Container', fields=RandomBytes(name='Mode_Parameter', min_length=0, max_length=4, value='\x1c'))
+    ])
+
+
+# Mode Sence - FuzzableUSBMassStorageInterface
+scsi_mode_sense_10_response = Template(
+    name='scsi_mode_sense_10_response',
+    fields=[
+        SizeInBytes(name='bLength', sized_field='scsi_mode_sense_10_response', length=8, fuzzable=True),
         UInt8(name='MediumType', value=0x00),
         UInt8(name='Device_Specific_Param', value=0x00),
         SizedPt(name='Mode_Parameter_Container', fields=RandomBytes(name='Mode_Parameter', min_length=0, max_length=4, value='\x1c'))
@@ -300,8 +328,8 @@ SCSI_op_code_0x1a_or_0x5a = Template(
 
 
 # Read Format Capacity - FuzzableUSBMassStorageInterface
-SCSI_op_code_0x23 = Template(
-    name='SCSI_op_code_0x23',
+scsi_read_format_capacities = Template(
+    name='scsi_read_format_capacities',
     fields=[
         BE32(name='capacity_list_length', value=0x8),
         BE32(name='num_of_blocks', value=0x1000),
@@ -311,8 +339,8 @@ SCSI_op_code_0x23 = Template(
 
 
 # Read Capacity - FuzzableUSBMassStorageInterface
-SCSI_op_code_0x25 = Template(
-    name='SCSI_op_code_0x25',
+scsi_read_capacity_10_response = Template(
+    name='scsi_read_capacity_10_response',
     fields=[
         BE32(name='NumBlocks', value=0x4fff),
         BE32(name='BlockLen', value=0x200)
@@ -320,11 +348,153 @@ SCSI_op_code_0x25 = Template(
 
 
 # Read 10- FuzzableUSBMassStorageInterface
-SCSI_op_code_0x28 = Template(
-    name='SCSI_op_code_0x28',
+scsi_read_10_response = Template(
+    name='scsi_read_10_response',
     fields=[
         RandomBytes(name='Random_Block_Data', min_length=0, max_length=512 * 160, step=(512 / 4 * 3), value='\x00')
     ])
+
+
+##############################
+# Smart Card Class Templates #
+##############################
+
+# TODO: smartcard_Secure_response
+# TODO: smartcard_Mechanical_response
+# TODO: smartcard_Abort_response
+# TODO: smartcard_SetDataRateAndClock_Frequency_response
+# TODO: smartcard_scd_icc_descriptor
+
+
+class R2PParameters(Template):
+
+    def __init__(self, name, status, error, proto, ab_data, fuzzable=True):
+        fields = [
+            U8(name='bMessageType', value=0x82),
+            SizeInBytes(name='dwLength', sized_field=ab_data, length=32, fuzzable=True, encoder=ENC_INT_LE),
+            DynamicInt(name='bSlot', key='bSlot', bitfield=U8(name='bSlotInt', value=0)),
+            DynamicInt(name='bSeq', key='bSeq', bitfield=U8(name='bSeqInt', value=0)),
+            U8(name='bStatus', value=status),
+            U8(name='bError', value=error),
+            U8(name='bProtocolNum', value=proto),
+            Container(name='abData', fields=ab_data),
+        ]
+        super(R2PParameters, self).__init__(name=name, fields=fields, fuzzable=fuzzable)
+
+
+smartcard_GetParameters_response = R2PParameters(
+    name='smartcard_GetParameters_response',
+    status=0x00,
+    error=0x80,
+    proto=0,
+    ab_data=RandomBytes(name='data', value='\x11\x00\x00\x0a\x00', min_length=0, max_length=150),
+)
+
+
+smartcard_ResetParameters_response = R2PParameters(
+    name='smartcard_ResetParameters_response',
+    status=0x00,
+    error=0x80,
+    proto=0,
+    ab_data=RandomBytes(name='data', value='\x11\x00\x00\x0a\x00', min_length=0, max_length=150),
+)
+
+smartcard_SetParameters_response = R2PParameters(
+    name='smartcard_SetParameters_response',
+    status=0x00,
+    error=0x80,
+    proto=0,
+    ab_data=RandomBytes(name='data', value='\x11\x00\x00\x0a\x00', min_length=0, max_length=150),
+)
+
+
+class R2PDataBlock(Template):
+
+    def __init__(self, name, status, error, chain_param, ab_data, fuzzable=True):
+        fields = [
+            U8(name='bMessageType', value=0x80),
+            SizeInBytes(name='dwLength', sized_field=ab_data, length=32, fuzzable=True, encoder=ENC_INT_LE),
+            DynamicInt(name='bSlot', key='bSlot', bitfield=U8(name='bSlotInt', value=0)),
+            DynamicInt(name='bSeq', key='bSeq', bitfield=U8(name='bSeqInt', value=0)),
+            U8(name='bStatus', value=status),
+            U8(name='bError', value=error),
+            U8(name='bChainParameter', value=chain_param),
+            Container(name='abData', fields=ab_data),
+        ]
+        super(R2PDataBlock, self).__init__(name=name, fields=fields, fuzzable=fuzzable)
+
+smartcard_IccPowerOn_response = R2PDataBlock(
+    name='smartcard_IccPowerOn_response',
+    status=0x00,
+    error=0x80,
+    chain_param=0x00,
+    ab_data=RandomBytes(name='data', value='\x3b\x6e\x00\x00\x80\x31\x80\x66\xb0\x84\x12\x01\x6e\x01\x83\x00\x90\x00', min_length=0, max_length=150),
+)
+
+smartcard_XfrBlock_response = R2PDataBlock(
+    name='smartcard_XfrBlock_response',
+    status=0x00,
+    error=0x80,
+    chain_param=0x00,
+    ab_data=RandomBytes(name='data', value='\x6a\x82', min_length=0, max_length=150),
+)
+
+
+class R2PSlotStatus(Template):
+    def __init__(self, name, status, error, clock_status, fuzzable=True):
+        fields = [
+            U8(name='bMessageType', value=0x80),
+            LE32(name='dwLength', value=0x00),
+            DynamicInt(name='bSlot', key='bSlot', bitfield=U8(name='bSlotInt', value=0)),
+            DynamicInt(name='bSeq', key='bSeq', bitfield=U8(name='bSeqInt', value=0)),
+            U8(name='bStatus', value=status),
+            U8(name='bError', value=error),
+            U8(name='bClockStatus', value=clock_status),
+        ]
+        super(R2PSlotStatus, self).__init__(name=name, fields=fields, fuzzable=fuzzable)
+
+
+smartcard_IccPowerOff_response = R2PSlotStatus('smartcard_IccPowerOff_response', 0x00, 0x80, 0)
+smartcard_GetSlotStatus_response = R2PSlotStatus('smartcard_GetSlotStatus_response', 0x00, 0x80, 0)
+smartcard_IccClock_response = R2PSlotStatus('smartcard_IccClock_response', 0x00, 0x80, 0)
+smartcard_T0APDU_response = R2PSlotStatus('smartcard_T0APDU_response', 0x00, 0x80, 0)
+
+
+class R2PEscape(Template):
+
+    def __init__(self, name, status, error, ab_data, fuzzable=True):
+        fields = [
+            U8(name='bMessageType', value=0x83),
+            SizeInBytes(name='dwLength', sized_field='abData', length=32, fuzzable=True, encoder=ENC_INT_LE),
+            DynamicInt(name='bSlot', key='bSlot', bitfield=U8(name='bSlotInt', value=0)),
+            DynamicInt(name='bSeq', key='bSeq', bitfield=U8(name='bSeqInt', value=0)),
+            U8(name='bStatus', value=status),
+            U8(name='bError', value=error),
+            U8(name='bRFU', value=0),
+            Container(name='abData', fields=ab_data),
+        ]
+        super(R2PEscape, self).__init__(name=name, fields=fields, fuzzable=fuzzable)
+
+smartcard_Escape_response = R2PEscape('smartcard_Escape_response', 0x00, 0x00, RandomBytes(name='data', value='', min_length=0, max_length=150))
+
+
+class R2PDataRateAndClockFrequency(Template):
+
+    def __init__(self, name, status, error, freq, rate, fuzzable=True):
+        fields = [
+            U8(name='bMessageType', value=0x84),
+            SizeInBytes(name='dwLength', sized_field=ab_data, length=32, fuzzable=True, encoder=ENC_INT_LE),
+            DynamicInt(name='bSlot', key='bSlot', bitfield=U8(name='bSlotInt', value=0)),
+            DynamicInt(name='bSeq', key='bSeq', bitfield=U8(name='bSeqInt', value=0)),
+            U8(name='bStatus', value=status),
+            U8(name='bError', value=error),
+            U8(name='bRFU', value=0),
+            Container(name='abData', fields=[
+                LE32(name='dwClockFrequency', value=freq),
+                LE32(name='dwDataRate', value=rate),
+            ]),
+        ]
+        super(R2PDataRateAndClockFrequency, self).__init__(name=name, fields=fields, fuzzable=fuzzable)
 
 
 ###################################################
@@ -437,8 +607,11 @@ class _AS_DescriptorSubTypes:  # AS Interface Descriptor Subtype
     FORMAT_SPECIFIC = 0x03
 
 
-adc_header_descriptor = Descriptor(
-    name='adc_header_descriptor',
+# TODO: audio_ep2_buffer_available
+
+# TODO: remove?
+audio_header_descriptor = Descriptor(
+    name='audio_header_descriptor',
     descriptor_type=_DescriptorTypes.CS_INTERFACE,
     fields=[
         UInt8(name='bDesciptorSubType', value=_AC_DescriptorSubTypes.HEADER),
@@ -448,10 +621,10 @@ adc_header_descriptor = Descriptor(
         Repeat(UInt8(name='baInterfaceNrX', value=1), 0, 247)
     ])
 
-
-adc_input_terminal_descriptor = Descriptor(
+# TODO: remove?
+audio_input_terminal_descriptor = Descriptor(
     descriptor_type=_DescriptorTypes.CS_INTERFACE,
-    name='adc_input_terminal_descriptor',
+    name='audio_input_terminal_descriptor',
     fields=[
         UInt8(name='bDesciptorSubType', value=_AC_DescriptorSubTypes.INPUT_TERMINAL),
         UInt8(name='bTerminalID', value=0x00),
@@ -463,9 +636,9 @@ adc_input_terminal_descriptor = Descriptor(
         UInt8(name='iTerminal', value=0x00)
     ])
 
-
-adc_output_terminal_descriptor = Descriptor(
-    name='adc_output_terminal_descriptor',
+# TODO: remove?
+audio_output_terminal_descriptor = Descriptor(
+    name='audio_output_terminal_descriptor',
     descriptor_type=_DescriptorTypes.CS_INTERFACE,
     fields=[
         UInt8(name='bDesciptorSubType', value=_AC_DescriptorSubTypes.OUTPUT_TERMINAL),
@@ -476,11 +649,10 @@ adc_output_terminal_descriptor = Descriptor(
         UInt8(name='iTerminal', value=0x00)
     ])
 
-# TODO skipping a few descriptors...
-
 # Table 4-7
-adc_feature_unit_descriptor = Descriptor(
-    name='adc_feature_unit_descriptor',
+# TODO: remove?
+audio_feature_unit_descriptor = Descriptor(
+    name='audio_feature_unit_descriptor',
     descriptor_type=_DescriptorTypes.CS_INTERFACE,
     fields=[
         UInt8(name='bDesciptorSubType', value=_AC_DescriptorSubTypes.FEATURE_UNIT),
@@ -493,8 +665,9 @@ adc_feature_unit_descriptor = Descriptor(
 
 
 # Table 4-19
-adc_as_interface_descriptor = Descriptor(
-    name='adc_as_interface_descriptor',
+# TODO: remove?
+audio_as_interface_descriptor = Descriptor(
+    name='audio_as_interface_descriptor',
     descriptor_type=_DescriptorTypes.CS_INTERFACE,
     fields=[
         UInt8(name='bDesciptorSubType', value=_AS_DescriptorSubTypes.AS_GENERAL),
@@ -504,8 +677,9 @@ adc_as_interface_descriptor = Descriptor(
     ])
 
 
-adc_as_format_type_descriptor = Descriptor(
-    name='adc_as_format_type_descriptor',
+# TODO: remove?
+audio_as_format_type_descriptor = Descriptor(
+    name='audio_as_format_type_descriptor',
     descriptor_type=_DescriptorTypes.CS_INTERFACE,
     fields=[
         UInt8(name='bDesciptorSubType', value=_AS_DescriptorSubTypes.FORMAT_TYPE),
@@ -518,8 +692,8 @@ adc_as_format_type_descriptor = Descriptor(
     ])
 
 
-adc_hid_descriptor = Descriptor(
-    name='adc_hid_descriptor',
+audio_hid_descriptor = Descriptor(
+    name='audio_hid_descriptor',
     descriptor_type=_DescriptorTypes.HID,
     fields=[
         DynamicInt('bcdHID', LE16(value=0x1001)),
@@ -533,8 +707,8 @@ adc_hid_descriptor = Descriptor(
 # this descriptor is based on umap
 # https://github.com/nccgroup/umap
 # commit 3ad812135f8c34dcde0e055d1fefe30500196c0f
-adc_report_descriptor = Template(
-    name='hid_report_descriptor',
+audio_report_descriptor = Template(
+    name='audio_report_descriptor',
     fields=GenerateHidReport(
         '050C0901A1011500250109E909EA75019502810209E209008106050B092095018142050C09009503810226FF000900750895038102090095049102C0'.decode('hex')
     )
