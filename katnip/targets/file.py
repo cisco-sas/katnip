@@ -60,8 +60,8 @@ class FileTarget(ServerTarget):
         if self.postfix:
             filename = '%s.%s' % (filename, self.postfix)
         self.full_path = os.path.join(self.path, filename)
-        self.logger.debug('deleting %s', self.full_path)
         if os.path.exists(self.full_path):
+            self.logger.debug('deleting %s', self.full_path)
             os.unlink(self.full_path)
         self.report.add('fuzzed_file_path', self.full_path)
 

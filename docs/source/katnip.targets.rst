@@ -11,6 +11,7 @@ Submodules
 
 .. toctree::
 
+   katnip.targets.application
    katnip.targets.file
    katnip.targets.raw_udp
    katnip.targets.serial
