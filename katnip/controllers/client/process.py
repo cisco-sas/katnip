@@ -33,7 +33,7 @@ class ClientProcessController(ClientController):
         :param name: name of the object
         :param process_path: path to the target executable
         :param process_args: arguments to pass to the process
-        :param process_env: the process environment (defualt: None)
+        :param process_env: the process environment (default: None)
         :param logger: logger for this object (default: None)
         '''
         super(ClientProcessController, self).__init__(name, logger)
@@ -67,7 +67,8 @@ class ClientProcessController(ClientController):
         self.report.add('return_code', self._process.returncode)
         self.report.add('killed', killed)
         if not killed:
-            self.report.add('failed', self._process.returncode == -1)
+            if self._process.returncode == -1:
+                self.report.failed('return code -1')
         self._process = None
         super(ClientProcessController, self).post_test()
 
