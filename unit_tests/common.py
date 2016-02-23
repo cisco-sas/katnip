@@ -62,6 +62,15 @@ def get_mutation_set(t, reset=True):
     return res
 
 
+def metaTest(func):
+    def test_wrap(self):
+        if self.__class__.__meta__:
+            self.skipTest('Test should not run from meta class')
+        else:
+            return func(self)
+    return test_wrap
+
+
 class BaseTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -70,3 +79,13 @@ class BaseTestCase(unittest.TestCase):
 
     def prepare(self):
         pass
+
+    def get_all_mutations(self, field, reset=True):
+        res = []
+        while field.mutate():
+            rendered = field.render()
+            res.append(rendered)
+            self.logger.debug(rendered.tobytes().encode('hex'))
+        if reset:
+            field.reset()
+        return res

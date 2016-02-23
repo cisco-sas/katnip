@@ -32,6 +32,7 @@ sys.path.insert(0, parentdir)
 from lego_json import *
 from lego_url import *
 from lego_dynamic import *
+from model_low_level_encoders import *
 
 
 if __name__ == '__main__':

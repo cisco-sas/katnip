@@ -20,8 +20,9 @@ from common import BaseTestCase, get_mutation_set
 
 
 class IpUrlTestCase(BaseTestCase):
+
     def test_not_implemented(self):
-        raise NotImplemented
+        raise NotImplementedError('not implemented yet')
 
 
 class LoginTestCase(BaseTestCase):
@@ -219,38 +220,45 @@ class HostPortTestCase(BaseTestCase):
 
 
 class HostNameTestCase(BaseTestCase):
+
     def test_not_implemented(self):
-        raise NotImplemented
+        raise NotImplementedError('not implemented yet')
 
 
 class SearchTestCase(BaseTestCase):
+
     def test_not_implemented(self):
-        raise NotImplemented
+        raise NotImplementedError('not implemented yet')
 
 
 class PathTestCase(BaseTestCase):
+
     def test_not_implemented(self):
-        raise NotImplemented
+        raise NotImplementedError('not implemented yet')
 
 
 class FTypeTestCase(BaseTestCase):
+
     def test_not_implemented(self):
-        raise NotImplemented
+        raise NotImplementedError('not implemented yet')
 
 
 class FtpUrlTestCase(BaseTestCase):
+
     def test_not_implemented(self):
-        raise NotImplemented
+        raise NotImplementedError('not implemented yet')
 
 
 class EmailAddressTestCase(BaseTestCase):
+
     def test_not_implemented(self):
-        raise NotImplemented
+        raise NotImplementedError('not implemented yet')
 
 
 class EmailUrlTestCase(BaseTestCase):
+
     def test_not_implemented(self):
-        raise NotImplemented
+        raise NotImplementedError('not implemented yet')
 
 
 class HttpUrlTestCase(BaseTestCase):
