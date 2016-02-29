@@ -1,27 +1,28 @@
 # Copyright (C) 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
 #
-# This file is part of Kitty.
+# This file is part of Katnip.
 #
-# Kitty is free software: you can redistribute it and/or modify
+# Katnip is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #
-# Kitty is distributed in the hope that it will be useful,
+# Katnip is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with Kitty.  If not, see <http://www.gnu.org/licenses/>.
+# along with Katnip.  If not, see <http://www.gnu.org/licenses/>.
 from katnip.legos import url as kurl
 from kitty.core import KittyException
 from common import BaseTestCase, get_mutation_set
 
 
 class IpUrlTestCase(BaseTestCase):
+
     def test_not_implemented(self):
-        raise NotImplemented
+        raise NotImplementedError('not implemented yet')
 
 
 class LoginTestCase(BaseTestCase):
@@ -219,38 +220,45 @@ class HostPortTestCase(BaseTestCase):
 
 
 class HostNameTestCase(BaseTestCase):
+
     def test_not_implemented(self):
-        raise NotImplemented
+        raise NotImplementedError('not implemented yet')
 
 
 class SearchTestCase(BaseTestCase):
+
     def test_not_implemented(self):
-        raise NotImplemented
+        raise NotImplementedError('not implemented yet')
 
 
 class PathTestCase(BaseTestCase):
+
     def test_not_implemented(self):
-        raise NotImplemented
+        raise NotImplementedError('not implemented yet')
 
 
 class FTypeTestCase(BaseTestCase):
+
     def test_not_implemented(self):
-        raise NotImplemented
+        raise NotImplementedError('not implemented yet')
 
 
 class FtpUrlTestCase(BaseTestCase):
+
     def test_not_implemented(self):
-        raise NotImplemented
+        raise NotImplementedError('not implemented yet')
 
 
 class EmailAddressTestCase(BaseTestCase):
+
     def test_not_implemented(self):
-        raise NotImplemented
+        raise NotImplementedError('not implemented yet')
 
 
 class EmailUrlTestCase(BaseTestCase):
+
     def test_not_implemented(self):
-        raise NotImplemented
+        raise NotImplementedError('not implemented yet')
 
 
 class HttpUrlTestCase(BaseTestCase):

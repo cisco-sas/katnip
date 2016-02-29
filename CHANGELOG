@@ -1,0 +1,5 @@
+Version 0.2.2 (2016-03-01)
+==========================
+
+* new feature: [Data Model] Added crypto encoders (removed from kitty 0.6.2)
+
