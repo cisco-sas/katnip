@@ -1,4 +1,3 @@
-git+https://github.com/cisco-sas/kitty
 paramiko
 scapy
 pycrypto
