@@ -19,7 +19,7 @@ setup(
     author_email=EMAIL,
     url=URL,
     packages=find_packages(),
-    install_requires=[],
+    install_requires=['kittyfuzzer'],
     keywords='fuzz framework sulley kitty katnip',
     package_data={}
 )
