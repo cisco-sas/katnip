@@ -19,6 +19,7 @@ import re
 import os
 import time
 import serial
+from threading import Lock
 from kitty.monitors.base import BaseMonitor
 
 
@@ -58,6 +59,7 @@ class SerialMonitor(BaseMonitor):
         self.baudrate = baudrate
         self.serial = None
         self.fd = None
+        self.fdlock = Lock()
         file_template = 'test_%(test_num)d_%(timestamp)s_serial.txt'
         self.name_pattern = os.path.join(capture_dir, file_template)
         self.current_file_name = None
@@ -93,12 +95,17 @@ class SerialMonitor(BaseMonitor):
         self.failure_pattern = re.compile(failure_pattern)
         self.failure_pattern_str = failure_pattern
 
+    def close_fd(self):
+        if self.fd is not None:
+            self.fdlock.acquire()
+            self.fd.close()
+            self.fd = None
+            self.fdlock.release()
+
     def post_test(self):
         self.report.add('capture_file_name', self.current_file_name)
         if self.fd is not None:
-            fd = self.fd
-            self.fd = None
-            fd.close()
+            self.close_fd()
             self.current_file_name = None
         super(SerialMonitor, self).post_test()
 
@@ -112,8 +119,10 @@ class SerialMonitor(BaseMonitor):
         if not os.path.exists(dirname):
             os.makedirs(dirname)
         newfd = open(newfilename, 'wb')
+        self.fdlock.acquire()
         oldfd = self.fd
         self.fd = newfd
+        self.fdlock.release()
         self.current_file_name = newfilename
         if oldfd is not None:
             oldfd.close()
@@ -128,5 +137,7 @@ class SerialMonitor(BaseMonitor):
                 self.report.failed('failure pattern [%s] matched line [%s]' % (self.failure_pattern_str, line))
             if self.success_pattern and self.success_pattern.search(line):
                 self.report.success()
+            self.fdlock.acquire()
             if self.fd is not None:
                 self.fd.write(line)
+            self.fdlock.release()
