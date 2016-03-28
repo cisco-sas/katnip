@@ -39,6 +39,23 @@ class SerialMonitor(BaseMonitor):
         or with a failure pattern
         (success if pattern was not found)
 
+    :examples:
+
+        Setting a monitor that will fail a test if a line that contains
+        "stack smashing detected" appears in the serial
+
+        ::
+
+            monitor = SerialMonitor('detect smash monitor', '/dev/ttyUSB0', capture_dir='serial_caps')
+            monitor.set_failure_pattern('stack smashing detected')
+
+        Setting a monitor that will fail a test if a line that contains either
+        "reboot" or "restart" appears on the serial (utilizing regex)
+
+        ::
+
+            monitor = SerialMonitor('detect reboot monitor', '/dev/ttyUSB0', capture_dir='serial_caps')
+            monitor.set_failure_pattern('(reboot)|(restart)')
     '''
 
     def __init__(self, name, dev_name=None, baudrate=115200,
