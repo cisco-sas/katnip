@@ -72,6 +72,7 @@ class SSHMonitor(BaseMonitor):
             self._connect_ssh()
             (self._stdin, self._stdout, self._stderr) = self._ssh.exec_command(cmd)
             return_code = self._stdout.channel.recv_exit_status()
+            self.logger.debug("%s, %d" % (cmd, return_code))
         except KeyboardInterrupt:
             raise
         except Exception as e:
@@ -83,6 +84,7 @@ class SSHMonitor(BaseMonitor):
         if return_code != 0:
             self.report.add('status_command', self._status_command)
             self.report.add('status_command return code', return_code)
+            self.report.failed("got non-zero return code")
             if self._restart_command:
                 self.logger.info('target not responding - restarting target !!!')
                 return_code = self._ssh_command(self._restart_command)
