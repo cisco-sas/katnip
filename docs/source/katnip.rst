@@ -16,4 +16,5 @@ Subpackages
     katnip.monitors
     katnip.targets
     katnip.templates
+    katnip.utils
 
