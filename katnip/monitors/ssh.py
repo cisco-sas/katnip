@@ -18,8 +18,7 @@
 import time
 
 from kitty.monitors.base import BaseMonitor
-
-import paramiko
+from katnip.utils.sshutils import ReconnectingSSHConnection
 
 
 class SSHMonitor(BaseMonitor):
@@ -42,60 +41,45 @@ class SSHMonitor(BaseMonitor):
         '''
         super(SSHMonitor, self).__init__(name, logger)
 
-        self._username = username
-        self._password = password
-        self._hostname = hostname
-        self._port = port
         self._status_command = status_command
         self._restart_command = restart_command
-        self._ssh = None
-
-    def setup(self):
-        super(SSHMonitor, self).setup()
-        self._connect_ssh()
+        self._ssh = ReconnectingSSHConnection(hostname, port, username, password)
 
     def teardown(self):
-        if self._ssh:
-            self._ssh.close()
-        self._ssh = None
+        self._ssh.close()
         super(SSHMonitor, self).teardown()
 
-    def _connect_ssh(self):
-        if not self._ssh:
-            self._ssh = paramiko.SSHClient()
-            self._ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            self._ssh.connect(self._hostname, self._port, self._username, self._password)
-
     def _ssh_command(self, cmd):
-        return_code = None
+        return_code = stdout = stderr = None
         try:
-            self._connect_ssh()
-            (self._stdin, self._stdout, self._stderr) = self._ssh.exec_command(cmd)
-            return_code = self._stdout.channel.recv_exit_status()
-            self.logger.debug("%s, %d" % (cmd, return_code))
+            return_code, stdout, stderr = self._ssh.exec_command(cmd)
         except KeyboardInterrupt:
             raise
         except Exception as e:
             self.logger.debug('SSHMonitor: ssh command exec error: %s' % str(e))
-        return return_code
+        return return_code, stdout, stderr
 
     def post_test(self):
-        return_code = self._ssh_command(self._status_command)
+        return_code, stdout, stderr = self._ssh_command(self._status_command)
         if return_code != 0:
             self.report.add('status_command', self._status_command)
             self.report.add('status_command return code', return_code)
+            self.report.add('status_command stdout', stdout)
+            self.report.add('status_command stderr', stderr)
             self.report.failed("got non-zero return code")
             if self._restart_command:
                 self.logger.info('target not responding - restarting target !!!')
-                return_code = self._ssh_command(self._restart_command)
+                return_code, stdout, stderr = self._ssh_command(self._restart_command)
                 self.report.add('restart_command', self._restart_command)
                 self.report.add('restart_command return code', return_code)
+                self.report.add('restart_command stdout', stdout)
+                self.report.add('restart_command stderr', stderr)
         super(SSHMonitor, self).post_test()
 
     def pre_test(self, test_number):
         super(SSHMonitor, self).pre_test(test_number)
-        return_code = self._ssh_command(self._status_command)
-        while return_code != 0:
+
+        while self._ssh_command(self._status_command)[0] != 0:
             self.logger.debug('waiting for target to be up')
             time.sleep(1)
 
