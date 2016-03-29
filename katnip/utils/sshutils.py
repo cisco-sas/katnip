@@ -15,23 +15,32 @@
 # You should have received a copy of the GNU General Public License
 # along with Katnip.  If not, see <http://www.gnu.org/licenses/>.
 import paramiko
+try:
+    import scp
+    scp_imported = True
+except ImportError:
+    scp_imported = False
 
 
 class ReconnectingSSHConnection(object):
     """
     A wrapper around paramiko's SSHClient which handles connection dropouts gracefully.
     """
-    def __init__(self, hostname, port, username, password):
+    def __init__(self, hostname, port, username, password, use_scp=False):
         """
         :param hostname: ssh server hostname or ip
         :param port: ssh server port
         :param username: ssh login username
         :param password: ssh login password
+        :param use_scp: use the SCP protocol for transferring files instead of SFTP
         """
         self._hostname = hostname
         self._port = port
         self._username = username
         self._password = password
+        self._use_scp = use_scp
+        if self._use_scp and not scp_imported:
+            raise Exception("The scp package needs to be installed in order to copy files with scp")
 
         self._paramiko = paramiko.SSHClient()
         self._paramiko.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -58,27 +67,31 @@ class ReconnectingSSHConnection(object):
         """
         self._paramiko.close()
 
-    def put(self, localpath, remotepath, callback=None, confirm=True):
+    def put(self, localpath, remotepath):
         """
-        Put a file on the ssh server using sftp.
+        Put a file on the ssh server using sftp or scp.
 
         :param localpath: the local path to the file to copy
         :param remotepath: the remote path to which the file should be copied
-        :param callback: optional callback function (form: func(int, int)) that accepts the bytes transferred so far and the total bytes to be transferred.
-        :param confirm: whether to do a stat() on the file afterwards to confirm the file size
         """
         self._ensure_connected()
-        return self.open_sftp().put(localpath, remotepath, callback, confirm)
+        if not self._use_scp:
+            return self._paramiko.open_sftp().put(localpath, remotepath)
+        else:
+            return scp.SCPClient(self._paramiko.get_transport()).put(localpath, remotepath)
 
-    def get(self, remotepath, localpath, callback=None):
+    def get(self, remotepath, localpath):
         """
-        Get a file from the ssh server using sftp.
+        Get a file from the ssh server using sftp or scp.
 
         :param remotepath: the remote path of the file to be copied
         :param localpath: the local path to which the file should be copied
-        :param callback: optional callback function (form: func(int, int)) that accepts the bytes transferred so far and the total bytes to be transferred.
         """
         self._ensure_connected()
-        return self.open_sftp().get(remotepath, localpath, callback)
+        if not self._use_scp:
+            return self._paramiko.open_sftp().get(remotepath, localpath)
+        else:
+            return scp.SCPClient(self._paramiko.get_tranport()).get(remotepath, localpath)
+
 
 
