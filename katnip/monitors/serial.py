@@ -103,7 +103,7 @@ class SerialMonitor(BaseMonitor):
         '''
         self.pattern_cbs.append((re.compile(pattern), cb))
 
-    def set_success_pattern(self, success_pattern):
+    def add_success_pattern(self, success_pattern):
         '''
         Set a pattern that declares the test successful if received
 
@@ -114,7 +114,10 @@ class SerialMonitor(BaseMonitor):
             self.report.success()
         self.add_pattern_callback(success_pattern, success_cb)
 
-    def set_failure_pattern(self, failure_pattern):
+    def set_success_pattern(self, success_pattern):
+        return self.add_success_pattern(success_pattern)
+
+    def add_failure_pattern(self, failure_pattern):
         '''
         Set a pattern that declares the test as failed if received
 
@@ -124,6 +127,9 @@ class SerialMonitor(BaseMonitor):
         def failure_cb(self, line, match):
             self.report.failed('failure pattern [%s] matched line [%s]' % (match.re.pattern, line))
         self.add_pattern_callback(failure_pattern, failure_cb)
+
+    def set_failure_pattern(self, failure_pattern):
+        return self.add_failure_pattern(failure_pattern)
 
     def close_fd(self):
         if self.fd is not None:
