@@ -21,5 +21,14 @@ setup(
     packages=find_packages(),
     install_requires=['kittyfuzzer'],
     keywords='fuzz framework sulley kitty katnip',
-    package_data={}
+    package_data={},
+    classifiers=[
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 2 :: Only',
+        'Topic :: Security',
+        'Topic :: Software Development :: Libraries :: Application Frameworks',
+        'Topic :: Utilities'
+    ]
 )
