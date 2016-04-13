@@ -26,19 +26,22 @@ class ReconnectingSSHConnection(object):
     """
     A wrapper around paramiko's SSHClient which handles connection dropouts gracefully.
     """
-    def __init__(self, hostname, port, username, password, use_scp=False):
+    def __init__(self, hostname, port, username, password, use_scp=False, scp_sanitize=None):
         """
         :param hostname: ssh server hostname or ip
         :param port: ssh server port
         :param username: ssh login username
         :param password: ssh login password
-        :param use_scp: use the SCP protocol for transferring files instead of SFTP
+        :param use_scp: use the SCP protocol for transferring files instead of SFTP (default: False)
+        :param scp_sanitize: sanitization function used on filenames passed to the scp module, if used. (defaut: no sanitization)
         """
         self._hostname = hostname
         self._port = port
         self._username = username
         self._password = password
         self._use_scp = use_scp
+        self._scp_sanitize = scp_sanitize if callable(scp_sanitize) else lambda s:s
+
         if self._use_scp and not scp_imported:
             raise Exception("The scp package needs to be installed in order to copy files with scp")
 
@@ -49,6 +52,12 @@ class ReconnectingSSHConnection(object):
         if self._paramiko.get_transport() is None or not self._paramiko.get_transport().isAlive():
             self._paramiko.connect(self._hostname, self._port, self._username, self._password)
 
+    def _sftp(self):
+        return self._paramiko.open_sftp()
+
+    def _scp(self):
+        return scp.SCPClient(self._paramiko.get_transport(), sanitize=self._scp_sanitize)
+            
     def exec_command(self, command):
         """
         Execute a command on the ssh server.
@@ -73,12 +82,13 @@ class ReconnectingSSHConnection(object):
 
         :param localpath: the local path to the file to copy
         :param remotepath: the remote path to which the file should be copied
+        :raises: OSException or IOException if file not found
         """
         self._ensure_connected()
         if not self._use_scp:
-            return self._paramiko.open_sftp().put(localpath, remotepath)
+            self._sftp().put(localpath, remotepath)
         else:
-            return scp.SCPClient(self._paramiko.get_transport()).put(localpath, remotepath)
+            self._scp().put(localpath, remotepath)
 
     def get(self, remotepath, localpath):
         """
@@ -86,12 +96,27 @@ class ReconnectingSSHConnection(object):
 
         :param remotepath: the remote path of the file to be copied
         :param localpath: the local path to which the file should be copied
+        :raises: OSException or IOException if file not found
         """
         self._ensure_connected()
         if not self._use_scp:
-            return self._paramiko.open_sftp().get(remotepath, localpath)
+            self._sftp().get(remotepath, localpath)
         else:
-            return scp.SCPClient(self._paramiko.get_tranport()).get(remotepath, localpath)
+            self._scp().get(remotepath, localpath)
 
+    def remove(self, remotepath):
+        """
+        Remove a file from the ssh server using sftp or scp.
+
+        :param remotepath: the remote path of the file to be removed
+        :raises: OSException or IOException if file not found
+        """
+        self._ensure_connected()
+        if not self._use_scp:
+            self._sftp().remove(remotepath)
+        else:
+            res, stdout, stderr =  self.exec_command("/bin/rm %s" % remotepath)
+            if res != 0:                
+                raise IOError(stderr)
 
 

@@ -20,8 +20,7 @@ import time
 import datetime
 
 from kitty.monitors.base import BaseMonitor
-
-import paramiko
+from katnip.utils.sshutils import ReconnectingSSHConnection
 
 
 class SshFileMonitor(BaseMonitor):
@@ -33,8 +32,9 @@ class SshFileMonitor(BaseMonitor):
     def __init__(self, name, username, password, hostname, port, 
                  file_mask,
                  local_dir,
+                 use_scp=False,
                  fail_if_exists=True,
-                 setup_commands = [],
+                 setup_commands=[],
                  on_fail_command=None,
                  on_fail_delay=0,
                  logger=None):
@@ -46,33 +46,31 @@ class SshFileMonitor(BaseMonitor):
         :param port: ssh server port
         :param file_mask: file_mask to fetch
         :param local_dir: local_path to store fetched files
+        :param use_scp: use the SCP protocol for transferring files instead of SFTP
         :param fail_if_exists: fail test if file exists (default: True)
+        :param on_fail_command: command to run on failure (default: None)
+        :param on_fail_delay: time to sleep after running on_fail_command (default: 0)
         :param logger: logger for this object (default: None)
         '''
         super(SshFileMonitor, self).__init__(name, logger)
 
-        self._username = username
-        self._password = password
-        self._hostname = hostname
-        self._port = port
         self._file_mask = file_mask
         self._local_dir = local_dir
         self._fail_if_exists = fail_if_exists
         self._setup_commands = setup_commands
         self._on_fail_command = on_fail_command
         self._on_fail_delay = on_fail_delay
-        self._ssh = None
-
+        self._ssh = ReconnectingSSHConnection(hostname, port, username, password, use_scp)
+                
     def _ssh_command(self, cmd):
         return_code = None
         try:
-            self._connect_ssh()
-            (self._stdin, self._stdout, self._stderr) = self._ssh.exec_command(cmd)
-            return_code = self._stdout.channel.recv_exit_status()
+            return_code, self._stdout, self._stderr = self._ssh.exec_command(cmd)
         except KeyboardInterrupt:
             raise
         except Exception as e:
             self.logger.debug('SSHFileMonitor: ssh command exec error: %s' % str(e))
+
         return return_code
 
     def setup(self):
@@ -84,15 +82,13 @@ class SshFileMonitor(BaseMonitor):
         self._local_dir = os.path.join(self._local_dir, timestamp)
         os.makedirs(self._local_dir)
 
-        self._connect_ssh()
-
         for command in self._setup_commands:
             self.logger.debug('running remote setup command: %s' % command)
             res = self._ssh_command(command)
             if res != 0:
                 self.logger.debug('Error running command: %s. got %s' % (command, res))
-                self.logger.debug('stdout: %s' % self._stdout.read())
-                self.logger.debug('stderr: %s' % self._stderr.read())
+                self.logger.debug('stdout: %s' % self._stdout)
+                self.logger.debug('stderr: %s' % self._stderr)
 
     def teardown(self):
         if self._ssh:
@@ -100,42 +96,34 @@ class SshFileMonitor(BaseMonitor):
         self._ssh = None
         super(SshFileMonitor, self).teardown()
 
-    def _connect_ssh(self):
-        if not self._ssh:
-            self._ssh = paramiko.SSHClient()
-            self._ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            self._ssh.connect(self._hostname, self._port, self._username, self._password)
-
     def post_test(self):
-        self._ssh = paramiko.SSHClient()
-        self._ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        self._ssh.connect(self._hostname, self._port, self._username, self._password)
-
         cmd = 'ls %s' % self._file_mask
-        (self._stdin, self._stdout, self._stderr) = self._ssh.exec_command(cmd)
-        return_code = self._stdout.channel.recv_exit_status()
+        return_code = self._ssh_command(cmd)
         self.report.add('file_mask', self._file_mask)
-        if return_code != 0:
-            self.report.add('status', 'No files found')
-        else:
-            ls_stdout = self._stdout.read()
-            ls_stderr = self._stderr.read()
+        if return_code == 0:
+            ls_stdout = self._stdout
+            ls_stderr = self._stderr
             del ls_stderr
-            self.report.add('failed', True)
-            self.report.add('remote core_file', ls_stdout.strip())
+            self.report.failed('found core file')
+            self.report.add('remote file', ls_stdout.strip())
             remote_path = ls_stdout.strip()
             local_path = os.path.join(self._local_dir, 'test_%05d' % self.test_number)
-            sftp = self._ssh.open_sftp()
-            sftp.get(str(remote_path), str(local_path))
-            sftp.remove(remote_path)
-            sftp.close()
-            self.report.add('local core_file', local_path)
+            self._ssh.get(str(remote_path), str(local_path))
+            self._ssh.remove(str(remote_path))
+            
+            self.report.add('local file', local_path)
             if self._on_fail_command:
                 self.logger.info('running remote on fail command: %s', self._on_fail_command)
                 self.report.add('on_fail_command', self._on_fail_command)
                 self.report.add('on_fail_delay', self._on_fail_delay)
-                self._ssh_command(self._on_fail_command)
-                time.sleep(self.on_fail_delay)
+                retval = self._ssh_command(self._on_fail_command)
+                self.logger.info('on fail command returned %s' % retval)
+                if retval != 0:
+                    self.logger.info('on fail command stdout %s' % self._stdout)
+                    self.logger.info('on fail command stderr %s' % self._stderr)
+                else:
+                    self.logger.info('sleeping for %s seconds' % self._on_fail_delay)
+                    time.sleep(self._on_fail_delay)
 
         super(SshFileMonitor, self).post_test()
 
