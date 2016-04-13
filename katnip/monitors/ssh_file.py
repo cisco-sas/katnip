@@ -32,12 +32,12 @@ class SshFileMonitor(BaseMonitor):
     def __init__(self, name, username, password, hostname, port, 
                  file_mask,
                  local_dir,
-                 use_scp         = False,
-                 fail_if_exists  = True,
-                 setup_commands  = [],
+                 use_scp = False,
+                 fail_if_exists = True,
+                 setup_commands = [],
                  on_fail_command = None,
-                 on_fail_delay   = 0,
-                 logger          = None):
+                 on_fail_delay = 0,
+                 logger = None):
         '''
         :param name: name of the object
         :param username: ssh login username
@@ -109,13 +109,8 @@ class SshFileMonitor(BaseMonitor):
             remote_path = ls_stdout.strip()
             local_path = os.path.join(self._local_dir, 'test_%05d' % self.test_number)
             self._ssh.get(str(remote_path), str(local_path))
-            command = "/bin/rm %s" % remote_path
-            res = self._ssh_command(command)
-            if res != 0:
-                self.logger.debug('Error running command: %s. got %s' % (command, res))
-                self.logger.debug('stdout: %s' % self._stdout)
-                self.logger.debug('stderr: %s' % self._stderr)
-
+            self._ssh.remove(str(remote_path))
+            
             self.report.add('local file', local_path)
             if self._on_fail_command:
                 self.logger.info('running remote on fail command: %s', self._on_fail_command)
