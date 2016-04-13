@@ -26,19 +26,21 @@ class ReconnectingSSHConnection(object):
     """
     A wrapper around paramiko's SSHClient which handles connection dropouts gracefully.
     """
-    def __init__(self, hostname, port, username, password, use_scp=False):
+    def __init__(self, hostname, port, username, password, use_scp=False, scp_sanitize=lambda s:s):
         """
         :param hostname: ssh server hostname or ip
         :param port: ssh server port
         :param username: ssh login username
         :param password: ssh login password
-        :param use_scp: use the SCP protocol for transferring files instead of SFTP
+        :param use_scp: use the SCP protocol for transferring files instead of SFTP (default = False)
+        :param scp_sanitize: sanitization function used on filenames passed to the scp module, if used. (defaut = no sanitization)
         """
         self._hostname = hostname
         self._port = port
         self._username = username
         self._password = password
         self._use_scp = use_scp
+        self._scp_sanitize = scp_sanitize
         if self._use_scp and not scp_imported:
             raise Exception("The scp package needs to be installed in order to copy files with scp")
 
@@ -78,7 +80,8 @@ class ReconnectingSSHConnection(object):
         if not self._use_scp:
             return self._paramiko.open_sftp().put(localpath, remotepath)
         else:
-            return scp.SCPClient(self._paramiko.get_transport()).put(localpath, remotepath)
+            return scp.SCPClient(self._paramiko.get_transport(),
+                                 sanitize=self._scp_sanitize).put(localpath, remotepath)
 
     def get(self, remotepath, localpath):
         """
@@ -91,7 +94,8 @@ class ReconnectingSSHConnection(object):
         if not self._use_scp:
             return self._paramiko.open_sftp().get(remotepath, localpath)
         else:
-            return scp.SCPClient(self._paramiko.get_tranport()).get(remotepath, localpath)
+            return scp.SCPClient(self._paramiko.get_transport(),
+                                 sanitize=self._scp_sanitize).get(remotepath, localpath)
 
 
 
