@@ -32,12 +32,12 @@ class SshFileMonitor(BaseMonitor):
     def __init__(self, name, username, password, hostname, port, 
                  file_mask,
                  local_dir,
-                 use_scp = False,
-                 fail_if_exists = True,
-                 setup_commands = [],
-                 on_fail_command = None,
-                 on_fail_delay = 0,
-                 logger = None):
+                 use_scp=False,
+                 fail_if_exists=True,
+                 setup_commands=[],
+                 on_fail_command=None,
+                 on_fail_delay=0,
+                 logger=None):
         '''
         :param name: name of the object
         :param username: ssh login username
