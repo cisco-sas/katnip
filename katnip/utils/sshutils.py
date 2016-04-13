@@ -51,6 +51,12 @@ class ReconnectingSSHConnection(object):
         if self._paramiko.get_transport() is None or not self._paramiko.get_transport().isAlive():
             self._paramiko.connect(self._hostname, self._port, self._username, self._password)
 
+    def _sftp(self):
+        return self._paramiko.open_sftp()
+
+    def _scp(self):
+        return scp.SCPClient(self._paramiko.get_transport(), sanitize=self._scp_sanitize)
+            
     def exec_command(self, command):
         """
         Execute a command on the ssh server.
@@ -78,10 +84,9 @@ class ReconnectingSSHConnection(object):
         """
         self._ensure_connected()
         if not self._use_scp:
-            return self._paramiko.open_sftp().put(localpath, remotepath)
+            return self._sftp().put(localpath, remotepath)
         else:
-            return scp.SCPClient(self._paramiko.get_transport(),
-                                 sanitize=self._scp_sanitize).put(localpath, remotepath)
+            return self._scp().put(localpath, remotepath)
 
     def get(self, remotepath, localpath):
         """
@@ -92,10 +97,19 @@ class ReconnectingSSHConnection(object):
         """
         self._ensure_connected()
         if not self._use_scp:
-            return self._paramiko.open_sftp().get(remotepath, localpath)
+            return self._sftp().get(remotepath, localpath)
         else:
-            return scp.SCPClient(self._paramiko.get_transport(),
-                                 sanitize=self._scp_sanitize).get(remotepath, localpath)
+            return self._scp().get(remotepath, localpath)
 
+    def remove(self, remotepath):
+        """
+        Remove a file from the ssh server using sftp or scp.
 
+        :param remotepath: the remote path of the file to be removed
+        """
+        self._ensure_connected()
+        if not self._use_scp:
+            return self._sftp().remove(remotepath)
+        else:
+            return self.exec_command("/bin/rm %s" % remotepath)
 
