@@ -2,7 +2,7 @@ from kitty.model import BaseField
 from kitty.model.low_level.encoder import ENC_STR_DEFAULT, StrEncoder
 
 
-class Scapy_Field(BaseField):
+class ScapyField(BaseField):
     '''
     Represent a scapy_class
     '''
@@ -25,7 +25,7 @@ class Scapy_Field(BaseField):
         # keep reference to the field for the _mutate method
         self.fuzz_packet = value
         # pass str(value), as we want the default value to be a string
-        super(Scapy_Field, self).__init__(value=str(value), encoder=encoder, fuzzable=fuzzable, name=name)
+        super(ScapyField, self).__init__(value=str(value), encoder=encoder, fuzzable=fuzzable, name=name)
 
 
     def num_mutations(self):
