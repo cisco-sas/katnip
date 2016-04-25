@@ -66,12 +66,11 @@ class FileTarget(ServerTarget):
         self.report.add('fuzzed_file_path', self.full_path)
 
     def _send_to_target(self, data):
-        self.logger.info('send called')
-        self.logger.info('file path is %s', self.full_path)
+        self.logger.debug('file path is %s', self.full_path)
         if data:
-            self.logger.info('data length: %#x' % len(data))
+            self.logger.debug('data length: %#x' % len(data))
             end = min(len(data) - 1, 100)
-            self.logger.info('data (start): %s', data[:end].encode('hex'))
+            self.logger.debug('data (start): %s', data[:end].encode('hex'))
         if self.full_path:
             self.logger.debug('opening file')
             nfile = open(self.full_path, 'wb')
