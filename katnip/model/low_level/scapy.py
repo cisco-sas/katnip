@@ -18,6 +18,7 @@
 # along with Katnip.  If not, see <http://www.gnu.org/licenses/>.
 from kitty.model import BaseField
 from kitty.model.low_level.encoder import ENC_STR_DEFAULT, StrEncoder
+import random
 
 
 class ScapyField(BaseField):
@@ -32,16 +33,13 @@ class ScapyField(BaseField):
 
             from scapy.all import *
             tcp_packet = IP()/TCP()
-            field = ScapyField(value=fuzz(tcp_packet), name='tcp packet', fuzz_count=50)
+            field = ScapyField(value=fuzz(tcp_packet), name='tcp packet', fuzz_count=50, seed=1000)
 
-    .. note::
-
-        Due to Scapy's `fuzz()` lack of seed, there's no real reset to this field.
     '''
 
     _encoder_type_ = StrEncoder
 
-    def __init__(self, value, encoder=ENC_STR_DEFAULT, fuzzable=True, name=None, fuzz_count=1000):
+    def __init__(self, value, encoder=ENC_STR_DEFAULT, fuzzable=True, name=None, fuzz_count=1000, seed=1024):
         '''
         :param value: scapy_packet_class
         :type encoder: :class:`~kitty.model.low_levele.encoder.ENC_STR_DEFAULT`
@@ -49,21 +47,34 @@ class ScapyField(BaseField):
         :param fuzzable: is field fuzzable (default: True)
         :param name: name of the object (default: None)
         :param fuzz_count: fuzz count (default: 1000)
+        :param seed: random seed (default: 1024)
         '''
-        self.name = name
-        self.fuzz_count = fuzz_count
+        self.seed = seed
+        # set the random seed
+        random.seed(self.seed)
+        # set the fuzz count
+        self._fuzz_count = fuzz_count
         # keep reference to the field for the _mutate method
-        self.fuzz_packet = value
-        # pass str(value), as we want the default value to be a string
+        self._fuzz_packet = value
         super(ScapyField, self).__init__(value=str(value), encoder=encoder, fuzzable=fuzzable, name=name)
+        # reset random count
+        random.seed(self.seed)
 
     def num_mutations(self):
         '''
         :return: number of mutations this field will perform
         '''
-        return self.fuzz_count
+        if self._fuzzable:
+            return self._fuzz_count
+        else:
+            return 0
 
     def _mutate(self):
         # during mutation, all we really do is call str(self.fuzz_packet)
         # as scapy performs mutation each time str() is called...
-        self._current_value = str(self.fuzz_packet)
+        self._current_value = str(self._fuzz_packet)
+
+    def reset(self):
+        super(ScapyField, self).reset()
+        # reset fuzz_packet to default status
+        random.seed(self.seed)
