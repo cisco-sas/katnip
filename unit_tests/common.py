@@ -72,13 +72,11 @@ def metaTest(func):
 
 
 class BaseTestCase(unittest.TestCase):
-
-    def setUp(self):
+    def setUp(self, field_class=None):
         self.logger = get_test_logger(type(self).__module__)
         self.logger.info('TESTING METHOD: %s', self._testMethodName)
-
-    def prepare(self):
-        pass
+        self.todo = []
+        self.cls = field_class
 
     def get_all_mutations(self, field, reset=True):
         res = []
