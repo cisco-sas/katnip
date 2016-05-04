@@ -16,9 +16,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Katnip.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import absolute_import
 from kitty.model import BaseField
 from kitty.model.low_level.encoder import ENC_STR_DEFAULT, StrEncoder
 import random
+from scapy.all import *
+import sys
+import StringIO
 
 
 class ScapyField(BaseField):
@@ -49,16 +53,16 @@ class ScapyField(BaseField):
         :param fuzz_count: fuzz count (default: 1000)
         :param seed: random seed (default: 1024)
         '''
-        self.seed = seed
+        self._seed = seed
         # set the random seed
-        random.seed(self.seed)
+        random.seed(self._seed)
         # set the fuzz count
         self._fuzz_count = fuzz_count
         # keep reference to the field for the _mutate method
         self._fuzz_packet = value
         super(ScapyField, self).__init__(value=str(value), encoder=encoder, fuzzable=fuzzable, name=name)
         # reset random count
-        random.seed(self.seed)
+        random.seed(self._seed)
 
     def num_mutations(self):
         '''
@@ -77,4 +81,13 @@ class ScapyField(BaseField):
     def reset(self):
         super(ScapyField, self).reset()
         # reset fuzz_packet to default status
-        random.seed(self.seed)
+        random.seed(self._seed)
+
+
+    def get_info(self):
+        info = super(ScapyField, self).get_info()
+        # add seed to report
+        info['seed'] = self._seed
+        if isinstance(self._fuzz_packet, Packet):
+            info['scapy/command'] = self._fuzz_packet.command()
+        return info
