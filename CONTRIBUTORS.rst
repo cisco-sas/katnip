@@ -17,5 +17,8 @@ Core Members
 Other Contributors
 ------------------
 
-* dark-lbp
+* dark-lbp <jtrkid@gmail.com>
     - ``ScapyField`` - scapy's ``fuzz()`` based mutations
+    - ``VMWareController`` - control targets that run in VMWare (for OSX at the moment)
+* yformaggio <https://github.com/yformaggio>
+    - ``VMWareController`` - control targets that run in VMWare (for OSX at the moment)
