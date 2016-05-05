@@ -33,6 +33,7 @@ class VMWareController (BaseController):
     :example:
 
         ::
+
             class MyVMWareController(VMWareController):
                 def __init__(self, name, vmrun, vmx, host, port, background=True, logger=None, snap_name=None):
                     super(MyVMWareController, self).__init__(name, vmrun, vmx, background=background, logger=logger, snap_name=snap_name)

@@ -13,6 +13,7 @@ Subpackages
 
     katnip.controllers
     katnip.legos
+    katnip.model
     katnip.monitors
     katnip.targets
     katnip.templates

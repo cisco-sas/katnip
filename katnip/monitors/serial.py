@@ -93,6 +93,7 @@ class SerialMonitor(BaseMonitor):
         '''
         Add a pattern to search for on the serial output, and the callback that
         will be called when the pattern is found.
+
         :type pattern: str
         :param pattern: regular expression pattern to be searched for in the serial output
         :type cb: callable
