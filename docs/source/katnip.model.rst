@@ -1,5 +1,5 @@
 katnip.model package
-==========================
+====================
 
 .. automodule:: katnip.model
     :members:

@@ -1,5 +1,5 @@
 katnip.model.low_level package
-==========================
+==============================
 
 .. automodule:: katnip.model.low_level
     :members:
@@ -12,4 +12,5 @@ Subpackages
 .. toctree::
 
     katnip.model.low_level.encoder
+    katnip.model.low_level.scapy
 
