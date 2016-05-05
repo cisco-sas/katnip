@@ -17,6 +17,7 @@
 
 import time
 import os
+import signal
 from subprocess import Popen, PIPE
 from kitty.controllers.client import ClientController
 
@@ -27,6 +28,9 @@ class ClientProcessController(ClientController):
     by starting it on each trigger.
     It uses subprocess.Popen and logs the process output (stdout, stderr)
     '''
+    sig_dict = {
+        k: v for v, k in reversed(sorted(signal.__dict__.items())) if v.startswith('SIG') and not v.startswith('SIG_')
+     }
 
     def __init__(self, name, process_path, process_args, process_env=None, logger=None):
         '''
@@ -64,11 +68,18 @@ class ClientProcessController(ClientController):
         self.report.add('stdout', self._process.stdout.read())
         self.report.add('stderr', self._process.stderr.read())
         self.logger.debug('return code: %d', self._process.returncode)
+        self.logger.debug('killed: %s', killed)
         self.report.add('return_code', self._process.returncode)
+        signame = self.sig_dict.get(-self._process.returncode, None)
+        if signame:
+            self.report.add('signal_name', signame)
         self.report.add('killed', killed)
         if not killed:
-            if self._process.returncode == -1:
-                self.report.failed('return code -1')
+            if self._process.returncode < 0:
+                if signame:
+                    self.report.failed('got signal %s' % signame)
+                else:
+                    self.report.failed('negative return code')
         self._process = None
         super(ClientProcessController, self).post_test()
 
