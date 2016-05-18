@@ -258,7 +258,7 @@ msc_get_max_lun_response = Template(
     fields=UInt8(name='Max_LUN', value=0x00))
 
 
-# Request Sence - FuzzableUSBMassStorageInterface
+# Request Sense - FuzzableUSBMassStorageInterface
 scsi_request_sense_response = Template(
     name='scsi_request_sense_response',
     fields=[
@@ -305,7 +305,7 @@ scsi_inquiry_response = Template(
     ])
 
 
-# Mode Sence - FuzzableUSBMassStorageInterface
+# Mode Sense - FuzzableUSBMassStorageInterface
 scsi_mode_sense_6_response = Template(
     name='scsi_mode_sense_6_response',
     fields=[
@@ -316,7 +316,7 @@ scsi_mode_sense_6_response = Template(
     ])
 
 
-# Mode Sence - FuzzableUSBMassStorageInterface
+# Mode Sense - FuzzableUSBMassStorageInterface
 scsi_mode_sense_10_response = Template(
     name='scsi_mode_sense_10_response',
     fields=[
