@@ -237,10 +237,10 @@ hub_descriptor = Descriptor(
 #              Mass Storage Templates             #
 ###################################################
 
-# TODO: scsi_test_unit_ready_response
+# TODO: scsi_test_unit_ready_response (nothing to fuzz! no data returned, besides the csw)
 # TODO: scsi_send_diagnostic_response
 # TODO: scsi_prevent_allow_medium_removal_response
-# TODO: scsi_write_10_response
+# TODO: scsi_write_10_response (nothing to fuzz! no data returned, besides the csw)
 # TODO: scsi_write_6_response
 # TODO: scsi_read_6_response
 # TODO: scsi_verify_10_response
@@ -253,12 +253,12 @@ reset_request = Template(
 
 
 # USBMassStorageClass
-max_lun = Template(
-    name='max_lun',
+msc_get_max_lun_response = Template(
+    name='msc_get_max_lun_response',
     fields=UInt8(name='Max_LUN', value=0x00))
 
 
-# Request Sence - FuzzableUSBMassStorageInterface
+# Request Sense - FuzzableUSBMassStorageInterface
 scsi_request_sense_response = Template(
     name='scsi_request_sense_response',
     fields=[
@@ -305,7 +305,7 @@ scsi_inquiry_response = Template(
     ])
 
 
-# Mode Sence - FuzzableUSBMassStorageInterface
+# Mode Sense - FuzzableUSBMassStorageInterface
 scsi_mode_sense_6_response = Template(
     name='scsi_mode_sense_6_response',
     fields=[
@@ -316,7 +316,7 @@ scsi_mode_sense_6_response = Template(
     ])
 
 
-# Mode Sence - FuzzableUSBMassStorageInterface
+# Mode Sense - FuzzableUSBMassStorageInterface
 scsi_mode_sense_10_response = Template(
     name='scsi_mode_sense_10_response',
     fields=[
