@@ -86,6 +86,15 @@ class Descriptor(Template):
         super(Descriptor, self).__init__(name=name, fields=fields)
 
 
+class SubDescriptor(Container):
+    def __init__(self, name, descriptor_type, fields, fuzz_type=True):
+        if isinstance(fields, BaseField):
+            fields = [fields]
+        fields.insert(0, SizeInBytes(name='bLength', sized_field=self, length=8, fuzzable=True))
+        fields.insert(1, UInt8(name='bDescriptorType', value=descriptor_type, fuzzable=fuzz_type))
+        super(SubDescriptor, self).__init__(name=name, fields=fields)
+
+
 class SizedPt(Container):
     '''
     Sized part of a descriptor.
@@ -143,16 +152,44 @@ device_qualifier_descriptor = Descriptor(
 
 # Configuration descriptor
 # Section 9.6.3, page 265
-configuration_descriptor = Descriptor(
+configuration_descriptor = Template(
     name='configuration_descriptor',
-    descriptor_type=_DescriptorTypes.CONFIGURATION,
     fields=[
-        DynamicInt('wTotalLength', LE16(value=9)),
-        DynamicInt('bNumInterfaces', UInt8(value=1)),
-        DynamicInt('bConfigurationValue', UInt8(value=1)),
-        DynamicInt('iConfiguration', UInt8(value=0)),
-        DynamicInt('bmAttributes', BitField(value=0, length=8)),
-        DynamicInt('bMaxPower', UInt8(value=1)),
+        UInt8(name='bLength', value=9),
+        UInt8(name='bDescriptorType', value=_DescriptorTypes.CONFIGURATION),
+        LE16(name='wTotalLength', value=9),
+        ElementCount(name='bNumInterfaces', depends_on='interfaces', length=8),
+        UInt8(name='bConfigurationValue', value=1),
+        UInt8(name='iConfiguration', value=0),
+        BitField(name='bmAttributes', value=0, length=8),
+        UInt8(name='bMaxPower', value=1),
+        List(name='interfaces', fields=[
+            Container(name='iface and eps', fields=[
+                SubDescriptor(
+                    name='interface_descriptor',
+                    descriptor_type=_DescriptorTypes.INTERFACE,
+                    fields=[
+                        UInt8(name='bInterfaceNumber', value=0),
+                        UInt8(name='bAlternateSetting', value=0),
+                        ElementCount(name='bNumEndpoints', depends_on='endpoints', length=8),
+                        UInt8(name='bInterfaceClass', value=0x08),
+                        UInt8(name='bInterfaceSubClass', value=0x06),
+                        UInt8(name='bInterfaceProtocol', value=0x50),
+                        UInt8(name='iInterface', value=0),
+                        List(name='endpoints', fields=[
+                            SubDescriptor(
+                                name='endpoint_descriptor',
+                                descriptor_type=_DescriptorTypes.ENDPOINT,
+                                fields=[
+                                    UInt8(name='bEndpointAddress', value=0),
+                                    BitField(name='bmAttributes', value=0, length=8),
+                                    LE16(name='wMaxPacketSize', value=65535),
+                                    UInt8(name='bInterval', value=0)
+                                ])
+                        ]),
+                    ])
+            ]),
+        ]),
     ])
 
 
@@ -168,22 +205,6 @@ other_speed_configuration_descriptor = Descriptor(
         UInt8(name='iConfiguration', value=0xff),
         BitField(name='bmAttributes', value=0, length=8),
         UInt8(name='bMaxPower', value=0xff)
-    ])
-
-
-# Interface descriptor
-# Section 9.6.5, page 267
-interface_descriptor = Descriptor(
-    name='interface_descriptor',
-    descriptor_type=_DescriptorTypes.INTERFACE,
-    fields=[
-        DynamicInt('bInterfaceNumber', UInt8(value=0)),
-        DynamicInt('bAlternateSetting', UInt8(value=0)),
-        DynamicInt('bNumEndpoints', UInt8(value=0x1)),
-        DynamicInt('bInterfaceClass', UInt8(value=0x08)),  # 0x08 mass storage
-        DynamicInt('bInterfaceSubClass', UInt8(value=0x06)),  # 0x06 mass storage
-        DynamicInt('bInterfaceProtocol', UInt8(value=0x50)),  # 0x50 mass storage
-        DynamicInt('iInterface', UInt8(value=0)),
     ])
 
 
@@ -293,6 +314,11 @@ scsi_inquiry_response = Template(
         UInt8(name='Removable', value=0x80),
         UInt8(name='Version', value=0x04),
         UInt8(name='Response_Data_Format', value=0x02),
+        SizeInBytes(
+            name='Additional Length',
+            sized_field='Additional Inquiry Data',
+            length=8
+        ),
         SizedPt(name='Additional Inquiry Data',
                 fields=[
                     UInt8(name='Sccstp', value=0x00),
@@ -344,14 +370,6 @@ scsi_read_capacity_10_response = Template(
     fields=[
         BE32(name='NumBlocks', value=0x4fff),
         BE32(name='BlockLen', value=0x200)
-    ])
-
-
-# Read 10- FuzzableUSBMassStorageInterface
-scsi_read_10_response = Template(
-    name='scsi_read_10_response',
-    fields=[
-        RandomBytes(name='Random_Block_Data', min_length=0, max_length=512 * 160, step=(512 / 4 * 3), value='\x00')
     ])
 
 
