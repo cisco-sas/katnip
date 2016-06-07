@@ -1,3 +1,19 @@
+Version 0.2.4 (2016-06-07)
+==========================
+* bugfix: [ClientProcessController] marked tests as failed only if the return code was -1
+* bugfix: [SSHFileMonitor] move to SshUtils, fixed multiple small issues
+* enhancement: [Tempaltes] improvements to USB templates
+* new feature: [Controller] VMWareController
+* new feature: [DataModel] ScapyField - support for using Scapy packets as data model
+
+Version 0.2.3 (2016-04-10)
+==========================
+
+* bugfix: [SerialMonitor] imports (using absolute_import now)
+* bugfix: [SerialMonitor] thread safety of file operations
+* enhancement: [SerialMonitor] can now have multiple patterns with arbitrary actions
+* new feature: [SshUtils] SSH utility classes to be used by all SSH related monitors/controllers
+
 Version 0.2.2 (2016-03-01)
 ==========================
 
