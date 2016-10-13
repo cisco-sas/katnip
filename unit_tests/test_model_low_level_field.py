@@ -18,12 +18,10 @@
 '''
 Tests for low level fields:
 '''
-
 from common import metaTest, BaseTestCase
 from bitstring import Bits
 import types
 from kitty.core import KittyException
-
 
 
 class ValueTestCase(BaseTestCase):
