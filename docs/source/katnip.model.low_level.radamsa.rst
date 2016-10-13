@@ -1,7 +1,7 @@
-katnip.model.low_level.scapy module
-===================================
+katnip.model.low_level.radamsa module
+=====================================
 
-.. automodule:: katnip.model.low_level.scapy
+.. automodule:: katnip.model.low_level.radamsa
     :members:
     :undoc-members:
     :show-inheritance:
