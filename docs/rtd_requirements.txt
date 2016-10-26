@@ -1,4 +1,6 @@
+mock
 paramiko
 scapy
 pycrypto
 pyserial
+frida
