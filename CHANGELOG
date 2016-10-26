@@ -1,5 +1,12 @@
+Version 0.2.5 (2016-10-26)
+==========================
+
+* new feature: [Controller] FridaLaunchServerController
+* new feature: [DataModel] RadamsaField - a wrapper for radamsa
+
 Version 0.2.4 (2016-06-07)
 ==========================
+
 * bugfix: [ClientProcessController] marked tests as failed only if the return code was -1
 * bugfix: [SSHFileMonitor] move to SshUtils, fixed multiple small issues
 * enhancement: [Tempaltes] improvements to USB templates
