@@ -80,7 +80,8 @@ class _FsIterator(KittyObject):
         :return: tuple (path, filename) of current case
         '''
         if self._index == -1:
-            return self._filename_dict[self._path_list[0]][0]
+            path = self._path_list[0]
+            return path, self._filename_dict[self._path_list[0]][0]
         elif self._index < self._count:
             path = self._path_list[self._path_index]
             files = self._filename_dict[path]
@@ -163,7 +164,7 @@ class FsNames(BaseField):
         '''
         self._fsi = _FsIterator(path, name_filter, recurse)
         self._full_path = full_path
-        super(FsNames, self).__init__(self._fsi.current(), encoder, fuzzable, name)
+        super(FsNames, self).__init__(self._fsi.current()[1], encoder, fuzzable, name)
         self._num_mutations = self._fsi.count()
 
     def _mutate(self):
@@ -184,7 +185,7 @@ class FsNames(BaseField):
 
     def get_info(self):
         info = super(FsNames, self).get_info()
-        info['filename'], info['filepath'] = self._fsi.current()
+        info['filepath'], info['filename'] = self._fsi.current()
         return info
 
 
@@ -230,5 +231,5 @@ class FsContent(BaseField):
 
     def get_info(self):
         info = super(FsContent, self).get_info()
-        info['filename'], info['filepath'] = self._fsi.current()
+        info['filepath'], info['filename'] = self._fsi.current()
         return info
