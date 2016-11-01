@@ -5,6 +5,7 @@ FS iterators contains fields that are based on files.
 from the system based on its configuration.
 - :class:`katnip.templates.fs_iterators.FsContent` will return the content
 of files from the system.
+
 '''
 import os
 from fnmatch import fnmatch
