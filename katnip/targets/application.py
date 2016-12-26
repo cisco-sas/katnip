@@ -118,19 +118,20 @@ class ApplicationTarget(ServerTarget):
 
     def _read(self, fd):
         resp = ''
-        poll_obj = select.poll()
-        poll_obj.register(fd, select.POLLIN)
         start = time.time()
-        while(time.time()-start) < self.timeout:
-            poll_result = poll_obj.poll(self.timeout)
-            if poll_result:
-                resp += fd.read(1)
+        end = start + self.timeout
+        wait_time = end - start
+        while wait_time > 0:
+            rl, wl, xl = select.select([fd], [], [], wait_time)
+            if rl:
+                resp += rl[0].read()
+            wait_time = end - time.time()
         return resp
 
     def post_test(self, test_num):
         self.report.add('stdout', self._read(self._process.stdout))
         self.report.add('stderr', self._read(self._process.stderr))
-        if self._process.returncode is None:
+        if self._process.poll() is None:
             self.logger.info('process is running, lets kill it!')
             self._stop_process()
         else:
