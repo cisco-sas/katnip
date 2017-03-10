@@ -99,7 +99,7 @@ class PykdTarget(ServerTarget):
         :param logger: logger for this object (default: None)
         :param timeout: seconds to wait for the process before kill (default: 3)
 
-                :example:
+        :example:
 
             ::
                 PykdTarget(
@@ -111,6 +111,7 @@ class PykdTarget(ServerTarget):
                     timeout=2)
 
             Will run ``/tmp/myApp -a -c mutational_data`` using pykd for evey mutation with timeout of 2 seconds
+
         '''
         super(PykdTarget, self).__init__(name, logger)
         assert(process_path)
