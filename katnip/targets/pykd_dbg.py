@@ -51,32 +51,32 @@ class EventHandler(pykd.eventHandler):
         :param target: Our PykdTarget
         '''
         super(EventHandler, self).__init__()
-        self._Target = target
+        self._target = target
 
     def onException(self, exceptionInfo):
         '''
         Triggered exception event. This example handler only recoder exception which we interested.
 
-        :param exceptionInfo
+        :param exceptionInfo: Exception information
         :return: For ignore event method must return eventResult.noChange
         '''
         eip = pykd.reg('eip')
         last_exception = str(pykd.getLastException())
         exc_code = exceptionInfo.exceptionCode
-        self._Target.logger.info("Got Exception Code: %s at eip:%s" % (hex(exc_code), hex(eip)))
+        self._target.logger.info("Got Exception Code: %s at eip:%s" % (hex(exc_code), hex(eip)))
         if exc_code in interesting_exception_codes.keys():
-            self._Target.is_crash.set()
-            self._Target.crash_dump_finished.clear()
-            self._Target.report.failed("Got Exception Code: %s:%s at eip:%s" % (
+            self._target.is_crash.set()
+            self._target.crash_dump_finished.clear()
+            self._target.report.failed("Got Exception Code: %s:%s at eip:%s" % (
                 hex(exc_code), interesting_exception_codes[exc_code], hex(eip)))
-            self._Target.report.add("Error Code", "%s:%s" % (hex(exc_code), interesting_exception_codes[exc_code]))
-            self._Target.report.add("Last Event", "%s" % last_exception)
-            self._Target.report.add("Stacks", str(pykd.dbgCommand("k")))
-            self._Target.crash_dump_finished.set()
+            self._target.report.add("Error Code", "%s:%s" % (hex(exc_code), interesting_exception_codes[exc_code]))
+            self._target.report.add("Last Event", "%s" % last_exception)
+            self._target.report.add("Stacks", str(pykd.dbgCommand("k")))
+            self._target.crash_dump_finished.set()
             return pykd.eventResult.Break
         elif exc_code == break_in_exception_code:
             # Handle break in event
-            self._Target.logger.info("Break in at eip:%s" % hex(eip))
+            self._target.logger.info("Break in at eip:%s" % hex(eip))
             return pykd.eventResult.Break
         return pykd.eventResult.NoChange
 
@@ -122,7 +122,6 @@ class PykdTarget(ServerTarget):
         self.process_data = None
         self._break_points = break_points
         self._handler = handler
-        self.handler = None
         self._timeout = timeout
         self._process = None
         self._pid = None
@@ -153,7 +152,7 @@ class PykdTarget(ServerTarget):
             try:
                 status = self._get_exe_status()
                 if status == 'Break':
-                    self.logger.info('Process is in break status')
+                    self.logger.debug('Process is in break status')
                     return True
             except Exception as err:
                 self.logger.error("Received exception when wait process break: %s" % err)
@@ -184,9 +183,9 @@ class PykdTarget(ServerTarget):
                 self.report.add('cmd', argv)
                 self._pid = pykd.startProcess(argv)
                 self._get_correct_process_id()
-                self.logger.info('Process started. pykd_pid=%d' % self._pid)
+                self.logger.debug('Process started. pykd_pid=%d' % self._pid)
                 self._process = pykd.getCurrentProcess()
-                self.logger.info('Process is %s' % hex(self._process))
+                self.logger.debug('Process is %s' % hex(self._process))
             except WindowsError:
                 self.logger.error('debug_server received exception', traceback.fmt_exc())
             # Get Process System ID
@@ -198,15 +197,15 @@ class PykdTarget(ServerTarget):
                 except Exception as err:
                     self.logger.debug("Get system id fail because of: %s" % err)
                     continue
-            # Set Bp
+            # Set break points
             if self._wait_break():
                 self.logger.info("Server is in break status setting break points")
                 for bp in self._break_points:
                     pykd.setBp(bp)
                 self.logger.info("Start register event handle")
-                # this will register our handle
-                self.handler = self._handler(self)
-                self.logger.info('Handler object is : %s' % self.handler)
+                # This will register our handle
+                handler = self._handler(self)
+                self.logger.debug('Handler object is : %s' % handler)
                 self.logger.info('Go !!!!!')
                 pykd.go()
         except:
@@ -217,8 +216,8 @@ class PykdTarget(ServerTarget):
         '''
         start the server thread
         '''
-        self.server_thread = FuncThread(self._debug_server)
-        self.server_thread.start()
+        self._server_thread = FuncThread(self._debug_server)
+        self._server_thread.start()
 
     def _kill_all_processes(self):
         '''
@@ -228,7 +227,7 @@ class PykdTarget(ServerTarget):
         if self._process:
             try:
                 status = self._get_exe_status()
-                self.logger.info("Current status is %s start kill process" % status)
+                self.logger.debug("Current status is %s start kill process" % status)
                 if status == 'Break':
                     self.logger.info("Process is in break status, kill process now")
                     pykd.killAllProcesses()
@@ -268,16 +267,13 @@ class PykdTarget(ServerTarget):
         pykd.deinitialize()
         super(PykdTarget, self).post_test(test_num)
 
-    def _send_to_target(self, data):
+    def _send_to_target(self, payload):
         '''
 
-        :param data: mutational_data (might by file path)
+        :param payload: payload to send (might be file path)
         '''
-        self.logger.info('send called')
-        '''
-        starting debug server
-        '''
-        self.process_data = [data]
+        self.logger.debug('send called')
+        self.process_data = [payload]
         self._start_server_thread()
 
     def _stop_process(self):
@@ -291,5 +287,5 @@ class PykdTarget(ServerTarget):
         restart the process
         '''
         self._stop_process()
-        self.server_thread.join(1)
+        self._server_thread.join(1)
         self._start_server_thread()
