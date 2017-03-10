@@ -18,4 +18,5 @@ Submodules
    katnip.targets.ssl
    katnip.targets.tcp
    katnip.targets.udp
+   katnip.targets.pykd_dbg
 
