@@ -35,8 +35,12 @@ class VMWareController (BaseController):
         ::
 
             class MyVMWareController(VMWareController):
-                def __init__(self, name, vmrun, vmx, host, port, background=True, logger=None, snap_name=None):
-                    super(MyVMWareController, self).__init__(name, vmrun, vmx, background=background, logger=logger, snap_name=snap_name)
+                def __init__(self, name, vmrun, vmx, host, port, background=True,
+                             logger=None, snap_name=None):
+                    super(MyVMWareController, self).__init__(name, vmrun, vmx,
+                                                             background=background,
+                                                             logger=logger,
+                                                             snap_name=snap_name)
                     self._host = host
                     self._port = port
 
@@ -53,8 +57,11 @@ class VMWareController (BaseController):
                         return self.active
                     return self.active
 
-            controller = MyVMWareController('VMWare Controller', vmrun='/path/to/vmrun', vmx='/path/to/vmx',
-                 host='Target_IP' ,port=Target_port, background=True, snap_name='Snapshot name')
+
+            controller = MyVMWareController('VMWare Controller', vmrun='/path/to/vmrun',
+                                            vmx='/path/to/vmx', host='Target_IP',
+                                            port=Target_port, background=True,
+                                            snap_name='Snapshot name')
 
     '''
 
@@ -69,8 +76,10 @@ class VMWareController (BaseController):
         :example:
 
             ::
-                controller = VMWareController('VMWare Controller', vmrun='/path/to/vmrun', vmx='/path/to/vmx',
-                 background=True, snap_name='Snapshot name')
+
+                controller = VMWareController('VMWare Controller', vmrun='/path/to/vmrun',
+                              vmx='/path/to/vmx', background=True,
+                              snap_name='Snapshot name')
         '''
 
         super(VMWareController, self).__init__(name, logger)

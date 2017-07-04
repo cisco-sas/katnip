@@ -102,6 +102,7 @@ class PykdTarget(ServerTarget):
         :example:
 
             ::
+
                 PykdTarget(
                     name='PykdTarget',
                     process_path="/tmp/myApp",

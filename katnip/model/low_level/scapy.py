@@ -21,8 +21,6 @@ from kitty.model import BaseField
 from kitty.model.low_level.encoder import ENC_STR_DEFAULT, StrEncoder
 import random
 from scapy.all import *
-import sys
-import StringIO
 
 
 class ScapyField(BaseField):
