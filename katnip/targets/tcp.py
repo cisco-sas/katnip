@@ -62,7 +62,7 @@ class TcpTarget(ServerTarget):
                 self.logger.error('Failed to connect to target server, retrying...')
                 time.sleep(1)
         if self.socket is None:
-            raise(KittyException('TCPTarget: (pre_test) cannot connect to server (retries = %d' % retry_count))
+            raise KittyException('TCPTarget: (pre_test) cannot connect to server (retries = %d' % retry_count)
 
     def _get_socket(self):
         '''

@@ -22,7 +22,10 @@ HTTP, HTTPS, FTP, FTPS
 
 .. todo:: URL fragments
 '''
-from urlparse import urlparse
+try:
+    from urlparse import urlparse
+except ModuleNotFoundError:
+    from urllib.parse import urlparse
 from kitty.model import Container, OneOf
 from kitty.model import BaseField, String, Delimiter, BitField, Group
 from kitty.model import ENC_STR_DEFAULT, ENC_INT_DEC
@@ -49,6 +52,7 @@ class Url(Container):
 
         genericurl = scheme ":" schemepart
     '''
+
     def __init__(self, scheme, parts, fuzz_scheme=True, fuzz_parts=True, fuzz_delim=True, fuzzable=True, name=None):
         '''
         :type scheme: str or instance of :class:`~kitty.model.low_level.field.BaseField`
@@ -81,6 +85,7 @@ class IpUrl(Url):
         password       = *[ uchar | ";" | "?" | "&" | "=" ]
         urlpath        = *xchar    ; depends on protocol see section 3.1
     '''
+
     def __init__(self, scheme, login, url_path=None, fuzz_scheme=True, fuzz_login=True, fuzz_delims=True, fuzzable=True, name=None):
         '''
         :type scheme: str or instance of :class:`~kitty.model.low_level.field.BaseField`
@@ -178,6 +183,7 @@ class HostPort(Container):
         hostport       = host [ ":" port ]
         port           = digits
     '''
+
     def __init__(self, host, port=None, fuzz_host=True, fuzz_port=True, fuzz_delim=True, fuzzable=True, name=None):
         '''
         :type host:
@@ -210,6 +216,7 @@ class HostName(Container):
         host           = hostname | hostnumber
         hostname       = *[ domainlabel "." ] toplabel
     '''
+
     def __init__(self, host='', fuzz_delims=False, fuzzable=True, name=None):
         '''
         :type host: str
@@ -220,7 +227,7 @@ class HostName(Container):
         '''
         fields = []
         domain_labels = host.split('.')
-        if len(domain_labels):
+        if domain_labels:
             for i, domain_label in enumerate(domain_labels[:-1]):
                 fields.append(String(name='domain label %d' % i, value=domain_label))
                 fields.append(Delimiter(name='domain label delimiter %d' % i, value='.', fuzzable=fuzz_delims))
@@ -234,6 +241,7 @@ class Search(Container):
 
     .. todo:: real implementation (parse search string etc.)
     '''
+
     def __init__(self, search='', fuzz_delims=False, fuzzable=True, name=None):
         '''
         :param search: search string (default: '')
@@ -252,6 +260,7 @@ class Path(Container):
     '''
     Container to fuzz the path of the URL
     '''
+
     def __init__(self, path=None, path_delim='/', fuzz_delims=True, fuzzable=True, name=None):
         '''
         :type path: str
@@ -285,6 +294,7 @@ class HttpUrl(Url):
         hsegment       = *[ uchar | ";" | ":" | "@" | "&" | "=" ]
         search         = *[ uchar | ";" | ":" | "@" | "&" | "=" ]
     '''
+
     def __init__(self, scheme='http', login=None, hostport=None, path=None, search=None,
                  fuzz_scheme=True, fuzz_delims=True, fuzzable=True, name=None):
         '''
@@ -343,7 +353,7 @@ class HttpUrl(Url):
             path = Path(path=parsed.path[1:], fuzz_delims=fuzz_delims, fuzzable=fuzzable, name='path')
         if parsed.query:
             search = Search(search=parsed.query, fuzz_delims=fuzz_delims, fuzzable=fuzzable, name='search')
-        return HttpUrl(scheme=parsed.scheme, login=login, hostport=hostport, path=path, search=search, fuzzable=fuzzable)
+        return HttpUrl(scheme=parsed.scheme, login=login, hostport=hostport, path=path, search=search, fuzzable=fuzzable, name=name)
 
 
 class FType(Container):

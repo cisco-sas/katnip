@@ -30,7 +30,7 @@ class ClientProcessController(ClientController):
     '''
     sig_dict = {
         k: v for v, k in reversed(sorted(signal.__dict__.items())) if v.startswith('SIG') and not v.startswith('SIG_')
-     }
+    }
 
     def __init__(self, name, process_path, process_args, process_env=None, logger=None):
         '''
@@ -109,8 +109,7 @@ class ClientProcessController(ClientController):
                 if self._is_victim_alive():
                     raise Exception('Failed to kill client process')
             return True
-        else:
-            return False
+        return False
 
     def _is_victim_alive(self):
         return self._process and (self._process.poll() is None)

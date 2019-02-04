@@ -19,7 +19,6 @@
 XML (tag/type-length-value) legos.
 Simplify template creation of XML-based protocol.
 '''
-from types import StringTypes, ListType, IntType
 from kitty.model import Container, Template
 from kitty.model import String, Static, SInt32, Clone
 from kitty.model import ENC_INT_DEC
@@ -52,11 +51,11 @@ class XmlAttribute(Container):
         :param fuzz_attribute: should we fuzz the attribute field (default: False)
         :param fuzz_value: should we fuzz the value field (default: True)
         '''
-        _check_type(attribute, StringTypes, 'attribute')
-        _check_type(value, StringTypes + (IntType, ), 'value')
+        _check_type(attribute, str, 'attribute')
+        _check_type(value, (str, int, ), 'value')
 
         value_name = _valuename(name)
-        if isinstance(value, StringTypes):
+        if isinstance(value, str):
             value_field = String(value, name=value_name, fuzzable=fuzz_value)
         else:
             value_field = SInt32(value, encoder=ENC_INT_DEC, fuzzable=fuzz_value, name=value_name)
@@ -86,10 +85,10 @@ class XmlElement(Container):
         :param fuzz_name: should we fuzz the element name
         :param fuzz_content: should we fuzz the content (n/a for XmlElement)
         '''
-        _check_type(element_name, StringTypes, 'element_name')
-        _check_type(attributes, ListType, 'attributes')
+        _check_type(element_name, str, 'element_name')
+        _check_type(attributes, list, 'attributes')
         if content:
-            _check_type(content, StringTypes + (ListType, IntType), 'content')
+            _check_type(content, (str, list, int), 'content')
 
         value_field = String(element_name, fuzzable=fuzz_name, name='%s_element' % name)
 
@@ -97,17 +96,17 @@ class XmlElement(Container):
             Static('<'),
             value_field
         ]
-        for i, attribute in enumerate(attributes):
+        for _, attribute in enumerate(attributes):
             fields.append(Static(' '))
             fields.append(attribute)
         fields.append(Static('>'))
         if content:
             content_name = '%s_content' + name
-            if isinstance(content, StringTypes):
+            if isinstance(content, str):
                 fields.append(String(content, fuzzable=fuzz_content, name=content_name))
-            elif isinstance(content, IntType):
+            elif isinstance(content, int):
                 fields.append(SInt32(content, encoder=ENC_INT_DEC, fuzzable=fuzz_content, name=content_name))
-            elif isinstance(content, ListType):
+            elif isinstance(content, list):
                 fields.append(Static(delimiter))
                 for elem in content:
                     _check_type(elem, XmlElement, 'element inside the content list')

@@ -30,6 +30,7 @@ class TelnetString(Template):
     '''
     represents: [Command]<SP>[Parameter]<CRLF>
     '''
+
     def __init__(self, command, optional=False, parameter=None, name=None):
         '''
         :param command: command string
@@ -52,6 +53,7 @@ class TelnetString(Template):
                 fields.append(String(value=parameter, name='string_%s_PARAM_' % command))
         fields.append(Delimiter(value='\r\n', name='delim_CRLF', fuzzable=False))
         super(TelnetString, self).__init__(name=name, fields=fields)
+
 
 # 4.1.1.  ACCESS CONTROL COMMANDS (page 25)
 # USER <SP> <username> <CRLF>
@@ -102,17 +104,18 @@ appe_command = TelnetString(command='APPE', parameter='KittyDir')
 #     [<SP> R <SP> <decimal-integer>] <CRLF>
 allo_command = Template(name='CMD_ALLO', fields=[
     String(value='ALLO', name='string_COMMAND_ALLO'),
-    Repeat( [
-                Delimiter(value=' ', name='delim_space1'),
-                UInt8(value=17, name='decimal_ALLO_PARAM_1', encoder=ENC_INT_DEC),
-                Delimiter(value=' ', name='delim_space2'),
-                String(value='R', name='string_ALLO_PARAM_2'),
-                Delimiter(value=' ', name='delim_space3'),
-                UInt8(value=17, name='decimal_ALLO_PARAM_3', encoder=ENC_INT_DEC)
-            ],
-            min_times=0, max_times=2),
+    Repeat(
+        [
+            Delimiter(value=' ', name='delim_space1'),
+            UInt8(value=17, name='decimal_ALLO_PARAM_1', encoder=ENC_INT_DEC),
+            Delimiter(value=' ', name='delim_space2'),
+            String(value='R', name='string_ALLO_PARAM_2'),
+            Delimiter(value=' ', name='delim_space3'),
+            UInt8(value=17, name='decimal_ALLO_PARAM_3', encoder=ENC_INT_DEC)
+        ],
+        min_times=0, max_times=2),
     Delimiter(value='\r\n', name='delim_CRLF', fuzzable=False)
-    ])
+])
 # REST <SP> <marker> <CRLF>
 rest_command = TelnetString(command='REST', parameter='HelloKitty')
 # RNFR <SP> <pathname> <CRLF>
@@ -143,4 +146,3 @@ stat_command = TelnetString(command='STAT', parameter='KittyDir', optional=True)
 help_command = TelnetString(command='HELP', parameter='HelloKitty', optional=True)
 # NOOP <CRLF>
 noop_command = TelnetString(command='SYST')
-

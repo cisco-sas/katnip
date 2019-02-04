@@ -21,11 +21,11 @@
 Tests for Scapy field:
 '''
 
+from scapy.all import *
 from common import metaTest
 from test_model_low_level_field import ValueTestCase
 from bitstring import Bits
 from katnip.model.low_level.scapy import *
-from scapy.all import *
 
 
 class ScapyFieldTests(ValueTestCase):
@@ -42,7 +42,6 @@ class ScapyFieldTests(ValueTestCase):
         self.default_value_rendered = Bits(bytes=self.default_value)
         self.uut_name = 'ScapyFieldTest'
 
-
     def runTest(self):
         pass
 
@@ -56,13 +55,7 @@ class ScapyFieldTests(ValueTestCase):
         mutations = self._get_all_mutations(field)
         self.assertEqual(num_mutations, len(mutations))
 
-
     @metaTest
     def testMutateAllDifferent(self):
         # some time will got same data, so we skip this test.
         pass
-
-
-
-
-

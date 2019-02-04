@@ -128,7 +128,7 @@ class WinAppDbgController(BaseController):
             # Wait for the debugee to finish.
             self._server_is_up.set()
             self._debug.loop()
-        except:
+        except Exception:
             self.logger.error('Got an exception in _debug_server')
             self.logger.error(traceback.format_exc())
         # Stop the debugger.
@@ -164,7 +164,7 @@ class WinAppDbgController(BaseController):
             try:
                 process.kill()
                 self.logger.info('successfully killed %s (%d)' % (name, process_pid))
-            except:
+            except Exception:
                 self.logger.error('failed to kill %s (%d) [%s]' % (name, process_pid, traceback.format_exc()))
                 res = False
         return res
@@ -223,9 +223,8 @@ class WinAppDbgController(BaseController):
                     raise Exception('Failed to kill client process')
             self._debug.stop()
             return True
-        else:
-            self._debug.stop()
-            return False
+        self._debug.stop()
+        return False
 
     def _restart(self):
         '''
@@ -248,6 +247,5 @@ class WinAppDbgController(BaseController):
             self.logger.debug('is_alive = %s' % is_alive)
             self.logger.debug('is_debugee_started = %s' % is_debugee_started)
             return (is_alive and is_debugee_started)
-        else:
-            self.logger.debug('_process is None')
+        self.logger.debug('_process is None')
         return False

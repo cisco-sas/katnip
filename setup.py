@@ -10,6 +10,7 @@ URL = 'https://github.com/cisco-sas/katnip.git'
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+
 setup(
     name='katnip',
     version=VERSION,
@@ -19,7 +20,7 @@ setup(
     author_email=EMAIL,
     url=URL,
     packages=find_packages(),
-    install_requires=['kittyfuzzer'],
+    install_requires=['kittyfuzzer', 'pyCrypto', 'scapy'],
     keywords='fuzz,fuzzing,framework,sulley,kitty,katnip',
     package_data={},
     classifiers=[

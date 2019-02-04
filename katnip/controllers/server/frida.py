@@ -140,7 +140,4 @@ class FridaLaunchServerController(BaseController):
         return self._frida_pid
 
     def _is_victim_alive(self):
-        if self._frida_pid:
-            return True
-        else:
-            return False
+        return bool(self._frida_pid)

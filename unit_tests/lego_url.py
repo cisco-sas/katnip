@@ -156,6 +156,7 @@ class HostPortTestCase(BaseTestCase):
     '''
     Tests for URL HostPort
     '''
+
     def test_default_full(self):
         expected = 'www.example.com:1234'
         uut = kurl.HostPort('www.example.com', port=1234)

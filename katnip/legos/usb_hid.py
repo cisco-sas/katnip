@@ -17,12 +17,12 @@
 '''
 Legos to generate USB HID reports
 '''
+from random import Random
 from kitty.model import Container, OneOf, TakeFrom
 from kitty.model import MutableField
 from kitty.model import U8, BitField, Static
 from kitty.model import ENC_INT_LE
 from kitty.core import KittyException
-from random import Random
 
 
 opcodes = {
@@ -87,7 +87,7 @@ class RandomHidReport(TakeFrom):
             for i in range(4):
                 opcode = tag | i
                 current = chr(opcode)
-                for j in range(i):
+                for _ in range(i):
                     current += chr(r.randint(0, 255))
                 fields.append(Static(name=namer.gen(opcode), value=current))
         super(RandomHidReport, self).__init__(

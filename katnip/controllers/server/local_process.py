@@ -1,7 +1,7 @@
 import os
-from kitty.controllers.base import BaseController
 from subprocess import Popen, PIPE
 import time
+from kitty.controllers.base import BaseController
 
 
 class LocalProcessController(BaseController):

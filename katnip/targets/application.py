@@ -18,6 +18,7 @@
 import os
 import time
 import select
+from binascii import hexlify
 from subprocess import Popen, PIPE
 from kitty.targets.server import ServerTarget
 
@@ -99,7 +100,7 @@ class ApplicationTarget(ServerTarget):
         if data:
             self.logger.info('data length: %#x' % len(data))
             end = min(len(data) - 1, 100)
-            self.logger.info('data (start): %s', data[:end].encode('hex'))
+            self.logger.info('data (start): %s', hexlify(data[:end]).decode())
         cmd = [self.path] + self.args
         if self.tempfile:
             nfile = open(self.tempfile, 'wb')

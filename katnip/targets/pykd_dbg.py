@@ -46,6 +46,7 @@ class EventHandler(pykd.eventHandler):
     This class is used to Handler Event from PYKD, you can overwrite any methods which listed in
     this link(https://pykd.codeplex.com/wikipage?title=PYKD%200.3.%20API%20Reference#eventHandler)
     '''
+
     def __init__(self, target):
         '''
         :param target: Our PykdTarget

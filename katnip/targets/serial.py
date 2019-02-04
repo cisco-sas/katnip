@@ -103,4 +103,3 @@ class SerialTarget(ServerTarget):
             if self.serial:
                 self.serial.close()
                 self.serial = None
-

@@ -92,6 +92,7 @@ class TList(Container):
     Bencoded list.
     Format: ``l<bencoded values>e``
     '''
+
     def __init__(self, fields=[], fuzz_delims=True, name=None):
         '''
         :param fields: content of the list, Fields...
@@ -101,7 +102,7 @@ class TList(Container):
         name = name if name is not None else _unique_name(type(self).__name__)
         super(TList, self).__init__(name=name, fields=[
             String(value='l', max_size=1, fuzzable=fuzz_delims, name=_merge(name, 'start')),
-            TakeFrom(fields=fields, name=_merge(name, 'fields'), min_elements=len(fields)/2),
+            TakeFrom(fields=fields, name=_merge(name, 'fields'), min_elements=len(fields) // 2),
             String(value='e', max_size=1, fuzzable=fuzz_delims, name=_merge(name, 'end'))
         ])
 
@@ -127,6 +128,6 @@ class TDict(Container):
             ]))
         super(TDict, self).__init__(name=name, fields=[
             String(value='d', max_size=1, fuzzable=fuzz_delims, name=_merge(name, 'start')),
-            TakeFrom(name=_merge(name, 'fields'), fields=dictionary_fields, min_elements=len(dictionary_fields)/2),
+            TakeFrom(name=_merge(name, 'fields'), fields=dictionary_fields, min_elements=len(dictionary_fields) // 2),
             String(value='e', max_size=1, fuzzable=fuzz_delims, name=_merge(name, 'end'))
         ])

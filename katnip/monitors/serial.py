@@ -18,8 +18,8 @@ from __future__ import absolute_import
 import re
 import os
 import time
-import serial
 from threading import Lock
+import serial
 from kitty.monitors.base import BaseMonitor
 
 
@@ -111,6 +111,7 @@ class SerialMonitor(BaseMonitor):
         :type success_pattern: str
         :param success_pattern: regular expression pattern of output that signifies success (e.g. no bug there)
         '''
+
         def success_cb(self, line, match):
             self.report.success()
         self.add_pattern_callback(success_pattern, success_cb)
@@ -125,6 +126,7 @@ class SerialMonitor(BaseMonitor):
         :type failure_pattern: str
         :param failure_pattern: regular expression pattern of output that signifies failure (e.g. potential bug there)
         '''
+
         def failure_cb(self, line, match):
             self.report.failed('failure pattern [%s] matched line [%s]' % (match.re.pattern, line))
         self.add_pattern_callback(failure_pattern, failure_cb)
@@ -178,4 +180,3 @@ class SerialMonitor(BaseMonitor):
             if self.fd is not None:
                 self.fd.write(line)
             self.fdlock.release()
-

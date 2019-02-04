@@ -29,7 +29,7 @@ class SshFileMonitor(BaseMonitor):
     If found - moves files to local folder, renaming with test number.
     '''
 
-    def __init__(self, name, username, password, hostname, port, 
+    def __init__(self, name, username, password, hostname, port,
                  file_mask,
                  local_dir,
                  use_scp=False,
@@ -61,7 +61,7 @@ class SshFileMonitor(BaseMonitor):
         self._on_fail_command = on_fail_command
         self._on_fail_delay = on_fail_delay
         self._ssh = ReconnectingSSHConnection(hostname, port, username, password, use_scp)
-                
+
     def _ssh_command(self, cmd):
         return_code = None
         try:
@@ -110,7 +110,7 @@ class SshFileMonitor(BaseMonitor):
             local_path = os.path.join(self._local_dir, 'test_%05d' % self.test_number)
             self._ssh.get(str(remote_path), str(local_path))
             self._ssh.remove(str(remote_path))
-            
+
             self.report.add('local file', local_path)
             if self._on_fail_command:
                 self.logger.info('running remote on fail command: %s', self._on_fail_command)

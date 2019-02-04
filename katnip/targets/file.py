@@ -16,6 +16,7 @@
 # along with Katnip.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+from binascii import hexlify
 from kitty.targets.server import ServerTarget
 
 
@@ -70,7 +71,7 @@ class FileTarget(ServerTarget):
         if data:
             self.logger.debug('data length: %#x' % len(data))
             end = min(len(data) - 1, 100)
-            self.logger.debug('data (start): %s', data[:end].encode('hex'))
+            self.logger.debug('data (start): %s', hexlify(data[:end]).decode())
         if self.full_path:
             self.logger.debug('opening file')
             nfile = open(self.full_path, 'wb')

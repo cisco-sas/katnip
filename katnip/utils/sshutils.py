@@ -26,6 +26,7 @@ class ReconnectingSSHConnection(object):
     """
     A wrapper around paramiko's SSHClient which handles connection dropouts gracefully.
     """
+
     def __init__(self, hostname, port, username, password, use_scp=False, scp_sanitize=None):
         """
         :param hostname: ssh server hostname or ip
@@ -40,7 +41,7 @@ class ReconnectingSSHConnection(object):
         self._username = username
         self._password = password
         self._use_scp = use_scp
-        self._scp_sanitize = scp_sanitize if callable(scp_sanitize) else lambda s:s
+        self._scp_sanitize = scp_sanitize if callable(scp_sanitize) else lambda s: s
 
         if self._use_scp and not scp_imported:
             raise Exception("The scp package needs to be installed in order to copy files with scp")
@@ -57,7 +58,7 @@ class ReconnectingSSHConnection(object):
 
     def _scp(self):
         return scp.SCPClient(self._paramiko.get_transport(), sanitize=self._scp_sanitize)
-            
+
     def exec_command(self, command):
         """
         Execute a command on the ssh server.
@@ -115,8 +116,6 @@ class ReconnectingSSHConnection(object):
         if not self._use_scp:
             self._sftp().remove(remotepath)
         else:
-            res, stdout, stderr =  self.exec_command("/bin/rm %s" % remotepath)
-            if res != 0:                
+            res, stdout, stderr = self.exec_command("/bin/rm %s" % remotepath)
+            if res != 0:
                 raise IOError(stderr)
-
-

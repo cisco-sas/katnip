@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Katnip.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import absolute_import
+import random
 from kitty.model import BaseField
 from kitty.model.low_level.encoder import ENC_STR_DEFAULT, StrEncoder
-import random
 from scapy.all import *
 
 
@@ -80,7 +80,6 @@ class ScapyField(BaseField):
         super(ScapyField, self).reset()
         # reset fuzz_packet to default status
         random.seed(self._seed)
-
 
     def get_info(self):
         info = super(ScapyField, self).get_info()

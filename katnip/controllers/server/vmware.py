@@ -19,13 +19,13 @@
 # You should have received a copy of the GNU General Public License
 # along with Katnip.  If not, see <http://www.gnu.org/licenses/>.
 
-from kitty.controllers.base import BaseController
 import time
 import subprocess
 import glob
+from kitty.controllers.base import BaseController
 
 
-class VMWareController (BaseController):
+class VMWareController(BaseController):
     '''
     This is a Base vmware Controler.To use this VMWareController you should reference this class
     and implement is_victim_alive function.

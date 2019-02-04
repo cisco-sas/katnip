@@ -19,6 +19,7 @@ Common functions / classes for unit tests
 '''
 
 import unittest
+from binascii import hexlify
 import logging
 from kitty.model import Template
 
@@ -83,7 +84,7 @@ class BaseTestCase(unittest.TestCase):
         while field.mutate():
             rendered = field.render()
             res.append(rendered)
-            self.logger.debug(rendered.tobytes().encode('hex'))
+            self.logger.debug(hexlify(rendered.tobytes()).decode())
         if reset:
             field.reset()
         return res

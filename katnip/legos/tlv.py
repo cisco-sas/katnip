@@ -87,15 +87,16 @@ class TLVFactory(object):
         :param fuzz_length: should fuzz the element length (default: True)
         '''
         return TLV(
-            name=name, tag=tag, value=fields, tag_size=self._tag_size, length_size=self._len_size,
+            name=name, tag=tag, fields=fields, tag_size=self._tag_size, length_size=self._len_size,
             encoder=self._encoder, fuzzable=fuzzable, fuzz_tag=fuzz_tag, fuzz_length=fuzz_length)
 
 
 if __name__ == '__main__':
     from kitty.model import String
+    from binascii import hexlify
     tlv = TLVFactory()
-    elem = tlv.element('version', 0x1, value=String(name='version-string', value='1.2.3'))
-    print elem.num_mutations()
-    print elem.render().bytes.encode('hex')
+    elem = tlv.element('version', 0x1, fields=String(name='version-string', value='1.2.3'))
+    print(elem.num_mutations())
+    print(hexlify(elem.render().bytes).decode())
     while elem.mutate():
-        print elem.render().bytes.encode('hex')
+        print(hexlify(elem.render().bytes).decode())
