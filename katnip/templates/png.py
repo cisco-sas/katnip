@@ -18,8 +18,9 @@
 '''
 PNG Templates - There's still work to be done
 '''
-from kitty.model import *
 import zlib
+from binascii import unhexlify
+from kitty.model import *
 
 
 def compression_func(s):
@@ -27,6 +28,7 @@ def compression_func(s):
     compressed = compressor.compress(s)
     compressed += compressor.flush()
     return compressed
+
 
 ZLIB_COMPRESS = StrFuncEncoder(compression_func)
 
@@ -113,6 +115,7 @@ class iTXt(Chunk):
     '''
     iTXt chunk.
     '''
+
     def __init__(self, keyword, data, fuzzable=True, name='iTXt', compressed=False):
         '''
         :param keyword: chunk keyword
@@ -232,7 +235,7 @@ png_template = Template(name='png', fields=[
         # Chunk('', []),
     ], max_elements=3),
     Chunk('IDAT', name='last idat', data_fields=[
-        RandomBytes(name='data', value='000000000000000000000000000000000000'.decode('hex'), min_length=5,
+        RandomBytes(name='data', value=unhexlify('000000000000000000000000000000000000'), min_length=5,
                     max_length=10000, encoder=ZLIB_COMPRESS)
     ]),
     Chunk('IEND')

@@ -36,7 +36,7 @@ class LoginTestCase(BaseTestCase):
         '''
         expected = 'user:password@'
         uut = kurl.Login(username='user', password='password')
-        actual = uut.render().bytes
+        actual = uut.render().bytes.decode()
         self.assertEqual(actual, expected)
 
     def test_no_username_with_password(self):
@@ -53,13 +53,13 @@ class LoginTestCase(BaseTestCase):
         '''
         expected = 'user@'
         uut = kurl.Login(username='user')
-        actual = uut.render().bytes
+        actual = uut.render().bytes.decode()
         self.assertEqual(actual, expected)
 
     def test_empty(self):
         expected = ''
         uut = kurl.Login()
-        actual = uut.render().bytes
+        actual = uut.render().bytes.decode()
         self.assertEqual(actual, expected)
 
     def test_fuzz_username_true(self):
@@ -67,7 +67,7 @@ class LoginTestCase(BaseTestCase):
         password = 'pass'
         uut = kurl.Login(username=username, password=password, fuzz_username=True, fuzz_password=False, fuzz_delims=False)
         mutations = get_mutation_set(uut)
-        if all(username in mutation for mutation in mutations):
+        if all(username.encode() in mutation for mutation in mutations):
             raise Exception('username always appear')
 
     def test_fuzz_username_false(self):
@@ -75,7 +75,7 @@ class LoginTestCase(BaseTestCase):
         password = 'pass'
         uut = kurl.Login(username=username, password=password, fuzz_username=False, fuzz_password=True, fuzz_delims=True)
         mutations = get_mutation_set(uut)
-        if not all(username in mutation for mutation in mutations):
+        if not all(username.encode() in mutation for mutation in mutations):
             raise Exception('username does not always appear')
 
     def test_fuzz_password_true(self):
@@ -83,7 +83,7 @@ class LoginTestCase(BaseTestCase):
         password = 'pass'
         uut = kurl.Login(username=username, password=password, fuzz_username=False, fuzz_password=True, fuzz_delims=False)
         mutations = get_mutation_set(uut)
-        if all(password in mutation for mutation in mutations):
+        if all(password.encode() in mutation for mutation in mutations):
             raise Exception('password always appear')
 
     def test_fuzz_password_false(self):
@@ -91,7 +91,7 @@ class LoginTestCase(BaseTestCase):
         password = 'pass'
         uut = kurl.Login(username=username, password=password, fuzz_username=True, fuzz_password=False, fuzz_delims=True)
         mutations = get_mutation_set(uut)
-        if not all(password in mutation for mutation in mutations):
+        if not all(password.encode() in mutation for mutation in mutations):
             raise Exception('password does not always appear')
 
     def test_fuzz_delims_true(self):
@@ -101,9 +101,9 @@ class LoginTestCase(BaseTestCase):
         delim2 = '@'
         uut = kurl.Login(username=username, password=password, fuzz_username=False, fuzz_password=False, fuzz_delims=True)
         mutations = get_mutation_set(uut)
-        if all(delim1 in mutation for mutation in mutations):
+        if all(delim1.encode() in mutation for mutation in mutations):
             raise Exception('"%s" always appear' % delim1)
-        if all(delim2 in mutation for mutation in mutations):
+        if all(delim2.encode() in mutation for mutation in mutations):
             raise Exception('"%s" always appear' % delim2)
 
     def test_fuzz_delims_false(self):
@@ -113,9 +113,9 @@ class LoginTestCase(BaseTestCase):
         delim2 = '@'
         uut = kurl.Login(username=username, password=password, fuzz_username=True, fuzz_password=True, fuzz_delims=False)
         mutations = get_mutation_set(uut)
-        if not all(delim1 in mutation for mutation in mutations):
+        if not all(delim1.encode() in mutation for mutation in mutations):
             raise Exception('"%s" does not always appear' % delim1)
-        if not all(delim2 in mutation for mutation in mutations):
+        if not all(delim2.encode() in mutation for mutation in mutations):
             raise Exception('"%s" does not always appear' % delim2)
 
     def test_not_fuzzable(self):
@@ -140,7 +140,7 @@ class DecimalNumberTestCase(BaseTestCase):
     def test_default_value(self):
         uut = kurl.DecimalNumber(5)
         expected = '5'
-        actual = uut.render().bytes
+        actual = uut.render().bytes.decode()
         self.assertEqual(actual, expected)
 
     def test_performing_string_mutations(self):
@@ -160,13 +160,13 @@ class HostPortTestCase(BaseTestCase):
     def test_default_full(self):
         expected = 'www.example.com:1234'
         uut = kurl.HostPort('www.example.com', port=1234)
-        actual = uut.render().bytes
+        actual = uut.render().bytes.decode()
         self.assertEqual(actual, expected)
 
     def test_no_port(self):
         expected = 'www.example.com'
         uut = kurl.HostPort('www.example.com')
-        actual = uut.render().bytes
+        actual = uut.render().bytes.decode()
         self.assertEqual(actual, expected)
 
     def test_fuzz_host_true(self):
@@ -174,7 +174,7 @@ class HostPortTestCase(BaseTestCase):
         port = 1234
         uut = kurl.HostPort(host, port, fuzz_host=True, fuzz_port=False, fuzz_delim=False)
         mutations = get_mutation_set(uut)
-        if all(host in mutation for mutation in mutations):
+        if all(host.encode() in mutation for mutation in mutations):
             raise Exception('host always appear')
 
     def test_fuzz_host_false(self):
@@ -182,7 +182,7 @@ class HostPortTestCase(BaseTestCase):
         port = 1234
         uut = kurl.HostPort(host, port, fuzz_host=False, fuzz_port=True, fuzz_delim=True)
         mutations = get_mutation_set(uut)
-        if not all(host in mutation for mutation in mutations):
+        if not all(host.encode() in mutation for mutation in mutations):
             raise Exception('host does not always appear')
 
     def test_fuzz_port_true(self):
@@ -190,7 +190,7 @@ class HostPortTestCase(BaseTestCase):
         port = '1234'
         uut = kurl.HostPort(host, int(port), fuzz_host=False, fuzz_port=True, fuzz_delim=False)
         mutations = get_mutation_set(uut)
-        if all(port in mutation for mutation in mutations):
+        if all(port.encode() in mutation for mutation in mutations):
             raise Exception('port always appear')
 
     def test_fuzz_port_false(self):
@@ -198,7 +198,7 @@ class HostPortTestCase(BaseTestCase):
         port = '1234'
         uut = kurl.HostPort(host, int(port), fuzz_host=True, fuzz_port=False, fuzz_delim=True)
         mutations = get_mutation_set(uut)
-        if not all(port in mutation for mutation in mutations):
+        if not all(port.encode() in mutation for mutation in mutations):
             raise Exception('port does not always appear')
 
     def test_fuzz_delim_true(self):
@@ -207,7 +207,7 @@ class HostPortTestCase(BaseTestCase):
         delim = ':'
         uut = kurl.HostPort(host, int(port), fuzz_host=False, fuzz_port=False, fuzz_delim=True)
         mutations = get_mutation_set(uut)
-        if all(delim in mutation for mutation in mutations):
+        if all(delim.encode() in mutation for mutation in mutations):
             raise Exception('delim always appear')
 
     def test_fuzz_delim_false(self):
@@ -216,7 +216,7 @@ class HostPortTestCase(BaseTestCase):
         delim = ':'
         uut = kurl.HostPort(host, int(port), fuzz_host=True, fuzz_port=True, fuzz_delim=False)
         mutations = get_mutation_set(uut)
-        if not all(delim in mutation for mutation in mutations):
+        if not all(delim.encode() in mutation for mutation in mutations):
             raise Exception('delim does not always appear')
 
 
@@ -277,7 +277,7 @@ class HttpUrlTestCase(BaseTestCase):
             search=kurl.Search('sourceid=chrome-instant&ion=1&espv=2&ie=UTF-8'),
             name='uut'
         )
-        actual = container.render().bytes
+        actual = container.render().bytes.decode()
         self.assertEqual(actual, expected)
 
     def test_constructed_url_no_login(self):
@@ -292,7 +292,7 @@ class HttpUrlTestCase(BaseTestCase):
             search=kurl.Search('sourceid=chrome-instant&ion=1&espv=2&ie=UTF-8'),
             name='uut'
         )
-        actual = container.render().bytes
+        actual = container.render().bytes.decode()
         self.assertEqual(actual, expected)
 
     def test_constructed_url_no_search(self):
@@ -306,7 +306,7 @@ class HttpUrlTestCase(BaseTestCase):
             path=kurl.Path('index.html', name='the page'),
             name='uut'
         )
-        actual = container.render().bytes
+        actual = container.render().bytes.decode()
         self.assertEqual(actual, expected)
 
     def test_constructed_url_no_path(self):
@@ -319,7 +319,7 @@ class HttpUrlTestCase(BaseTestCase):
             hostport=kurl.HostPort('www.google.com', port=123, name='our host'),
             name='uut'
         )
-        actual = container.render().bytes
+        actual = container.render().bytes.decode()
         self.assertEqual(actual, expected)
 
 
@@ -328,7 +328,7 @@ class FromStringTests(BaseTestCase):
     def _test_vanilla_supported(self, url, expected_class):
         container = kurl.url_from_string(url)
         self.assertEqual(type(container), expected_class)
-        rendered = container.render().tobytes()
+        rendered = container.render().tobytes().decode()
         self.assertEqual(url, rendered)
 
     def test_supported_ftp(self):

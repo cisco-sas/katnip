@@ -1,7 +1,7 @@
+import struct
 from kitty.model import Container, Static, OneOf, ElementCount
 from kitty.model import LE32, SizeInBytes, String, RandomBytes
 from kitty.model import ENC_INT_LE
-import struct
 
 
 class apev2item(Container):
@@ -11,7 +11,7 @@ class apev2item(Container):
                         encoder=ENC_INT_LE),
             LE32(name="Item Flags", value=flags),
             String(name="Item Key", value=key, fuzzable=False),
-            Static("\x00"),
+            Static(b"\x00"),
             Container(name="Item Value", fields=[value])
         ]
         super(apev2item, self).__init__(name=key, fields=fields, fuzzable=fuzzable)
@@ -29,7 +29,7 @@ apev2container = Container(name="apev2container", fields=[
     SizeInBytes(name="size", sized_field="items and footer", length=32, encoder=ENC_INT_LE),
     ElementCount(depends_on="items", length=32, name="item count", encoder=ENC_INT_LE),
     LE32(name="flags", value=0xa0000000),
-    RandomBytes(name="reserved", value="\x00"*8, min_length=8, max_length=8),
+    RandomBytes(name="reserved", value=b"\x00" * 8, min_length=8, max_length=8),
     Container(name="items and footer", fields=[
         OneOf(name="items", fields=[
             apev2textitem("Title", "Music Piece Title"),

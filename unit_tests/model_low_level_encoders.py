@@ -188,7 +188,7 @@ class AesEncryptEncoderTestCase(CryptorEncoderTestCase):
         if self.crypto.padder:
             data = self.crypto.padder(data, self.crypto.block_size)
         elif len(data) % self.crypto.block_size:
-            data += '\x00' * (self.crypto.block_size - (len(data) % self.crypto.block_size))
+            data += b'\x00' * (self.crypto.block_size - (len(data) % self.crypto.block_size))
         return aes.encrypt(data)
 
     def test_padder(self):
@@ -239,7 +239,7 @@ class AesDecryptEncoderTestCase(CryptorEncoderTestCase):
     __meta__ = False
 
     def setUp(self):
-        crypto = CryptArgs('\x01' * 16, '\x00' * 16, 16, [16, 24, 32], AES.MODE_CBC, None)
+        crypto = CryptArgs(b'\x01' * 16, b'\x00' * 16, 16, [16, 24, 32], AES.MODE_CBC, None)
         super(AesDecryptEncoderTestCase, self).setUp(crypto)
 
     def get_encoder(self):
@@ -255,7 +255,7 @@ class AesDecryptEncoderTestCase(CryptorEncoderTestCase):
         key = self.crypto.key
         if self.crypto.key_provider:
             key = self.crypto.key_provider(self.crypto.key_size)
-        iv = self.crypto.iv if self.crypto.iv else ('\x00' * self.crypto.block_size)
+        iv = self.crypto.iv if self.crypto.iv else (b'\x00' * self.crypto.block_size)
         aes = AES.new(key=key, IV=iv, mode=self.crypto.mode)
         decrypted = aes.decrypt(data)
         return decrypted
@@ -315,7 +315,7 @@ class DesEncryptEncoderTestCase(CryptorEncoderTestCase):
         if self.crypto.padder:
             data = self.crypto.padder(data, self.crypto.block_size)
         elif len(data) % self.crypto.block_size:
-            data += '\x00' * (self.crypto.block_size - (len(data) % self.crypto.block_size))
+            data += b'\x00' * (self.crypto.block_size - (len(data) % self.crypto.block_size))
         return des.encrypt(data)
 
     def test_padder(self):
@@ -388,7 +388,7 @@ class Des3EncryptEncoderTestCase(CryptorEncoderTestCase):
         if self.crypto.padder:
             data = self.crypto.padder(data, self.crypto.block_size)
         elif len(data) % self.crypto.block_size:
-            data += '\x00' * (self.crypto.block_size - (len(data) % self.crypto.block_size))
+            data += b'\x00' * (self.crypto.block_size - (len(data) % self.crypto.block_size))
         return des3.encrypt(data)
 
     def test_padder(self):

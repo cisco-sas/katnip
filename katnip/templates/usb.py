@@ -22,7 +22,7 @@ All page / section references are for the USB 2.0 spec document
 The USB 2.0 may be downloaded from:
 http://www.usb.org/developers/docs/usb20_docs/usb_20_042814.zip
 '''
-
+from binascii import unhexlify
 from kitty.model import *
 from katnip.legos.dynamic import DynamicInt
 from katnip.legos.usb_hid import GenerateHidReport
@@ -100,6 +100,7 @@ class SizedPt(Container):
     Sized part of a descriptor.
     It receives all fields excepts of the size field and adds it.
     '''
+
     def __init__(self, name, fields):
         '''
         :param name: name of the Container
@@ -227,7 +228,7 @@ string_descriptor = Descriptor(
     name='string_descriptor',
     descriptor_type=_DescriptorTypes.STRING,
     fields=[
-        String(name='bString', value='hello_kitty', encoder=StrEncodeEncoder('utf_16_le'), max_size=254/2)
+        String(name='bString', value='hello_kitty', encoder=StrEncodeEncoder('utf_16_le'), max_size=254 // 2)
     ])
 
 
@@ -441,6 +442,7 @@ class R2PDataBlock(Template):
         ]
         super(R2PDataBlock, self).__init__(name=name, fields=fields, fuzzable=fuzzable)
 
+
 smartcard_IccPowerOn_response = R2PDataBlock(
     name='smartcard_IccPowerOn_response',
     status=0x00,
@@ -492,6 +494,7 @@ class R2PEscape(Template):
             Container(name='abData', fields=ab_data),
         ]
         super(R2PEscape, self).__init__(name=name, fields=fields, fuzzable=fuzzable)
+
 
 smartcard_Escape_response = R2PEscape('smartcard_Escape_response', 0x00, 0x00, RandomBytes(name='data', value='', min_length=0, max_length=150))
 
@@ -728,7 +731,7 @@ audio_hid_descriptor = Descriptor(
 audio_report_descriptor = Template(
     name='audio_report_descriptor',
     fields=GenerateHidReport(
-        '050C0901A1011500250109E909EA75019502810209E209008106050B092095018142050C09009503810226FF000900750895038102090095049102C0'.decode('hex')
+        unhexlify('050C0901A1011500250109E909EA75019502810209E209008106050B092095018142050C09009503810226FF000900750895038102090095049102C0')
     )
 )
 
@@ -754,7 +757,7 @@ hid_descriptor = Descriptor(
 hid_report_descriptor = Template(
     name='hid_report_descriptor',
     fields=GenerateHidReport(
-        '05010906A101050719E029E7150025017501950881029501750881011900296515002565750895018100C0'.decode('hex')
+        unhexlify('05010906A101050719E029E7150025017501950881029501750881011900296515002565750895018100C0')
     )
 )
 

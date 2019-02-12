@@ -1,3 +1,4 @@
+from binascii import unhexlify
 from kitty.model import Template, Container, Static, SizeInBytes, ElementCount, List
 from kitty.model import String, BE16, BE8, BE32, BitField
 from kitty.model import AbsoluteOffset
@@ -5,6 +6,7 @@ from kitty.model import ENC_INT_BE, StrNullTerminatedEncoder
 
 
 STR_ENC_NULLTERM = StrNullTerminatedEncoder()
+
 
 class Mp4Box(Container):
     def __init__(self, name, fields, fuzzable=True):
@@ -14,7 +16,7 @@ class Mp4Box(Container):
         ])
         content = Container(name="content", fields=fields)
         super(Mp4Box, self).__init__(name=name.replace("\xa9", "\\xa9"), fields=[header, content],
-                                      fuzzable=fuzzable)
+                                     fuzzable=fuzzable)
 
 
 class Mp4FullBox(Mp4Box):
@@ -44,10 +46,11 @@ class Mp4MetadataUtf8Box(Mp4MetadataBox):
             String(name="text", value=text)
         ], fuzzable=fuzzable)
 
+
 class HdlrBox(Mp4FullBox):
     def __init__(self, handler_type, component_name, fuzzable=True):
         super(HdlrBox, self).__init__("hdlr", fields=[
-            String(name="predefined", value="\x00\x00\x00\x00", fuzzable=False),
+            String(name="predefined", value=b"\x00\x00\x00\x00", fuzzable=False),
             String(name="handler_type", value=handler_type, fuzzable=False),
             String(name="manufacturer", value="appl", fuzzable=False),
             BE32(name="component_flags", value=0x00000000),
@@ -69,9 +72,9 @@ class AudioSampleEntry(Mp4Box):
     def __init__(self, name, data_reference_index, channelcount, samplesize,
                  pre_defined, samplerate, fields=[], fuzzable=True):
         super(AudioSampleEntry, self).__init__(name=name, fields=[
-            Static(name="reserved0", value="\x00"*6),
+            Static(name="reserved0", value=b"\x00" * 6),
             BE16(name="data_reference_index", value=data_reference_index),
-            Static(name="reserved1", value="\x00\x00\x00\x00"*2),
+            Static(name="reserved1", value=b"\x00\x00\x00\x00" * 2),
             BE16(name="channelcount", value=channelcount),
             BE16(name="samplesize", value=samplesize),
             BE16(name="pre_defined", value=pre_defined),
@@ -110,7 +113,7 @@ mp4base = Template(name="mp4base", fields=[
         ])
     ], fuzzable=False),
     Mp4Box("mdat", fields=[
-        Static(name="audiodata", value="""
+        Static(name="audiodata", value=unhexlify("""
 de0400006c69626661616320312e323800000168ac01c820321004424301
 0848221208888261813845bffe0aac951bde667e9e9c7e38d5ea2ab35907
 4f54ff627f8de79aedac7cf68ecf968786d07f836ff4b84921ff9ff8c039
@@ -151,7 +154,7 @@ e61b08837dc35eb9b5cc08800de035eb3580000b80d7300002200bdc0380
 f76f55cd61305ff1efb4d64c85079fcb057c048afd592c63111668160596
 5016600000000007aba371f1d6f5220004481fec767a1f4300dada3e0ece
 cf43e87aa001b5b5b4356ad5ac000d9b360d4000003d9b366c0000000d9b
-366c000000003fafb2203800c8c0802380""".replace("\n","").decode('hex'))
+366c000000003fafb2203800c8c0802380""".replace("\n", "")))
     ]),
     Mp4Box("moov", fields=[
         Mp4FullBox("mvhd", fields=[
@@ -161,10 +164,10 @@ cf43e87aa001b5b5b4356ad5ac000d9b360d4000003d9b366c0000000d9b
             BE32(name="duration", value=0x00000183),
             BE32(name="preferredRate", value=0x00010000),
             BE16(name="preferredVolume", value=0x0100),
-            Static(name="reserved1", value="""
+            Static(name="reserved1", value=unhexlify("""
 000000000000000000000001000000000000000000000000000000010000
 000000000000000000000000400000000000000000000000000000000000
-00000000000000000000""".replace("\n", "").decode("hex")),
+00000000000000000000""".replace("\n", ""))),
             BE32(name="nextTrackId", value=0x00000002),
         ], fuzzable=False),
         Mp4Box("trak", fuzzable=False, fields=[
@@ -180,9 +183,9 @@ cf43e87aa001b5b5b4356ad5ac000d9b360d4000003d9b366c0000000d9b
                 BE16(name="alternate_group", value=0x0001),
                 BE16(name="volume", value=0x0100),
                 BE16(name="reserved4", value=0x0000),
-                Static(name="matrix", value="""
+                Static(name="matrix", value=unhexlify("""
 000100000000000000000000000000000001000000000000000000000000
-000040000000""".replace("\n", "").decode("hex")),
+000040000000""".replace("\n", ""))),
                 BE32(name="width", value=0x00000000),
                 BE32(name="height", value=0x00000000),
             ], fuzzable=False),
@@ -214,7 +217,7 @@ cf43e87aa001b5b5b4356ad5ac000d9b360d4000003d9b366c0000000d9b
                             ElementCount(name="entry_count", depends_on="dataentries", length=32),
                             Container(name="dataentries", fields=[
                                 Mp4FullBox("url ", flags=0x000001,
-                                                            fuzzable=False)
+                                           fuzzable=False)
 
                             ])
                         ])
@@ -228,9 +231,9 @@ cf43e87aa001b5b5b4356ad5ac000d9b360d4000003d9b366c0000000d9b
                                                  fields=[
                                                      Mp4FullBox("esds", fields=[
                                                          Static(name="esds_data",
-                                                                value="""
+                                                                value=unhexlify("""
 0380808022000100048080801440150000000001f4000000628405808080
-021388068080800102""".replace("\n", "").decode("hex"))
+021388068080800102""".replace("\n", "")))
                                                      ])
                                                  ]),
                             ])
@@ -284,13 +287,13 @@ cf43e87aa001b5b5b4356ad5ac000d9b360d4000003d9b366c0000000d9b
                 HdlrBox("mdir", ""),
                 Mp4Box("ilst", fields=[
                     List(name="metadata_atoms", fields=[
-                        Mp4MetadataUtf8Box("\xa9alb", "Album"),
-                        Mp4MetadataUtf8Box("\xa9art", "Artist"),
+                        Mp4MetadataUtf8Box(b"\xa9alb", "Album"),
+                        Mp4MetadataUtf8Box(b"\xa9art", "Artist"),
                         Mp4MetadataUtf8Box("aART", "Album Artist"),
-                        Mp4MetadataUtf8Box("\xa9cmt", "Comment"),
-                        Mp4MetadataUtf8Box("\xa9day", "Year"),
-                        Mp4MetadataUtf8Box("\xa9nam", "Title"),
-                        Mp4MetadataUtf8Box("\xa9gen", "Genre"),
+                        Mp4MetadataUtf8Box(b"\xa9cmt", "Comment"),
+                        Mp4MetadataUtf8Box(b"\xa9day", "Year"),
+                        Mp4MetadataUtf8Box(b"\xa9nam", "Title"),
+                        Mp4MetadataUtf8Box(b"\xa9gen", "Genre"),
                         Mp4MetadataBox("trkn", fields=[
                             BE16(name="unknown", value=0x0000),
                             BE16(name="track_number", value=0x0001),
@@ -302,8 +305,8 @@ cf43e87aa001b5b5b4356ad5ac000d9b360d4000003d9b366c0000000d9b
                             BE16(name="disk_number", value=0x0001),
                             BE16(name="total_disks", value=0x0002),
                         ]),
-                        Mp4MetadataUtf8Box("\xa9wrt", "Composer"),
-                        Mp4MetadataUtf8Box("\xa9too", "Encoder"),
+                        Mp4MetadataUtf8Box(b"\xa9wrt", "Composer"),
+                        Mp4MetadataUtf8Box(b"\xa9too", "Encoder"),
                         Mp4MetadataBox("tmpo", fields=[
                             BE16(name="tempo", value=0x0000),
                         ]),
@@ -311,10 +314,10 @@ cf43e87aa001b5b5b4356ad5ac000d9b360d4000003d9b366c0000000d9b
                         Mp4MetadataBox("rtng", fields=[
                             BE8(name="rating", value=0x00),
                         ]),
-                        Mp4MetadataUtf8Box("\xa9grp", "Grouping"),
+                        Mp4MetadataUtf8Box(b"\xa9grp", "Grouping"),
                         Mp4MetadataUtf8Box("catg", "Category"),
                         Mp4MetadataUtf8Box("desc", "Description"),
-                        Mp4MetadataUtf8Box("\xa9lyr", "Lyrics"),
+                        Mp4MetadataUtf8Box(b"\xa9lyr", "Lyrics"),
                     ])
                 ])
             ])
