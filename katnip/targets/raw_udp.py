@@ -46,9 +46,9 @@ class RawUdpTarget(UdpTarget):
         ip = IP(src=self.host, dst='255.255.255.255')
         udp = UDP(sport=68, dport=self.port)
         payload = Raw(load=data)
-        packet = str(ether / ip / udp / payload)
+        packet = ether / ip / udp / payload
         self.logger.debug('Sending header+data to host: %s:%d' % (self.host, self.port))
-        self.socket.send(packet)
+        self.socket.send(packet.build())
         self.logger.debug('Header+data sent to host')
 
     def _receive_from_target(self):
