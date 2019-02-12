@@ -18,9 +18,8 @@
 '''
 Tests for low level fields:
 '''
-from common import metaTest, BaseTestCase
 from bitstring import Bits
-import types
+from common import metaTest, BaseTestCase
 from kitty.core import KittyException
 
 
@@ -149,7 +148,7 @@ class ValueTestCase(BaseTestCase):
     def testSkipHalf(self):
         field = self.get_default_field(fuzzable=True)
         num_mutations = field.num_mutations()
-        to_skip = num_mutations / 2
+        to_skip = num_mutations // 2
         expected_skipped = min(to_skip, num_mutations)
         expected_mutated = num_mutations - expected_skipped
         self._check_skip(field, to_skip, expected_skipped, expected_mutated)
@@ -193,9 +192,9 @@ class ValueTestCase(BaseTestCase):
     @metaTest
     def testReturnTypeMutateFuzzable(self):
         field = self.get_default_field(fuzzable=True)
-        self.assertIsInstance(field.mutate(), types.BooleanType)
+        self.assertIsInstance(field.mutate(), bool)
         field.reset()
-        self.assertIsInstance(field.mutate(), types.BooleanType)
+        self.assertIsInstance(field.mutate(), bool)
 
     @metaTest
     def testReturnTypeRenderNotFuzzable(self):
@@ -218,9 +217,9 @@ class ValueTestCase(BaseTestCase):
     @metaTest
     def testReturnTypeMutateNotFuzzable(self):
         field = self.get_default_field(fuzzable=False)
-        self.assertIsInstance(field.mutate(), types.BooleanType)
+        self.assertIsInstance(field.mutate(), bool)
         field.reset()
-        self.assertIsInstance(field.mutate(), types.BooleanType)
+        self.assertIsInstance(field.mutate(), bool)
 
     @metaTest
     def testHashTheSameForTwoSimilarObjects(self):
@@ -251,7 +250,7 @@ class ValueTestCase(BaseTestCase):
         field_list = [field]
         self.assertEqual(field.get_rendered_fields(), field_list)
         while field.mutate():
-            if len(field.render()):
+            if field.render():
                 self.assertEqual(field.get_rendered_fields(), field_list)
             else:
                 self.assertEqual(field.get_rendered_fields(), [])
