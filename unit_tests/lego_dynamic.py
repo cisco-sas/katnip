@@ -18,7 +18,7 @@
 from katnip.legos.dynamic import DynamicExtended, DynamicInt, DynamicString
 from kitty.model import String
 from kitty.model import BE32
-from kitty.model import ENC_STR_BASE64_NO_NL
+from kitty.model import ENC_STR_BASE64
 
 from common import BaseTestCase, get_mutation_set
 
@@ -89,8 +89,8 @@ class DynamicStringTestCase(DynamicTestCase):
         self.assertGreater(len(uut_mutations), len(similar_mutations))
 
     def test_vanilla_with_encoder(self):
-        similar_string = String(self.def_value, encoder=ENC_STR_BASE64_NO_NL)
-        uut = DynamicString(key=self.the_key, value=self.def_value, encoder=ENC_STR_BASE64_NO_NL)
+        similar_string = String(self.def_value, encoder=ENC_STR_BASE64)
+        uut = DynamicString(key=self.the_key, value=self.def_value, encoder=ENC_STR_BASE64)
         similar_mutations = get_mutation_set(similar_string)
         uut_mutations = get_mutation_set(uut)
         if not any(x in uut_mutations for x in similar_mutations):
