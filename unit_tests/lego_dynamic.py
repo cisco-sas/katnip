@@ -39,7 +39,7 @@ class DynamicExtendedTestCase(DynamicTestCase):
     def test_default_value(self):
         additional_field = String('the_string')
         uut = DynamicExtended(key=self.the_key, value=self.def_value, additional_field=additional_field)
-        res = uut.render().bytes
+        res = uut.render().bytes.decode()
         self.assertEqual(res, self.def_value)
 
     def test_vanilla_with_string(self):
@@ -55,16 +55,16 @@ class DynamicExtendedTestCase(DynamicTestCase):
         additional_field = String(self.def_value)
         new_value = 'new_value'
         uut = DynamicExtended(key=self.the_key, value=self.def_value, additional_field=additional_field)
-        res = uut.render().bytes
+        res = uut.render().bytes.decode()
         self.assertEqual(res, self.def_value)
         uut.set_session_data({self.the_key: new_value})
-        res = uut.render().bytes
+        res = uut.render().bytes.decode()
         self.assertEqual(res, new_value)
 
     def test_not_fuzzable(self):
         additional_field = String('the_string')
         uut = DynamicExtended(key=self.the_key, value=self.def_value, additional_field=additional_field, fuzzable=False)
-        res = uut.render().bytes
+        res = uut.render().bytes.decode()
         self.assertEqual(res, self.def_value)
         self.assertEqual(uut.num_mutations(), 0)
 
@@ -76,7 +76,7 @@ class DynamicStringTestCase(DynamicTestCase):
 
     def test_default_value(self):
         uut = DynamicString(key=self.the_key, value=self.def_value)
-        res = uut.render().bytes
+        res = uut.render().bytes.decode()
         self.assertEqual(res, self.def_value)
 
     def test_vanilla(self):
@@ -111,15 +111,15 @@ class DynamicStringTestCase(DynamicTestCase):
     def test_set_session_data(self):
         new_value = 'new_value'
         uut = DynamicString(key=self.the_key, value=self.def_value)
-        res = uut.render().bytes
+        res = uut.render().bytes.decode()
         self.assertEqual(res, self.def_value)
         uut.set_session_data({self.the_key: new_value})
-        res = uut.render().bytes
+        res = uut.render().bytes.decode()
         self.assertEqual(res, new_value)
 
     def test_not_fuzzable(self):
         uut = DynamicString(key=self.the_key, value=self.def_value, fuzzable=False)
-        res = uut.render().bytes
+        res = uut.render().bytes.decode()
         self.assertEqual(res, self.def_value)
         self.assertEqual(uut.num_mutations(), 0)
 
@@ -128,6 +128,7 @@ class DynamicIntTestCase(DynamicTestCase):
     '''
     Tests for the :class:`~katnip.legos.dynamic.DynamicInt`
     '''
+
     def setUp(self):
         super(DynamicIntTestCase, self).setUp()
         self.bf = BE32(1234)
@@ -144,7 +145,7 @@ class DynamicIntTestCase(DynamicTestCase):
         res = uut.render().bytes
         self.assertEqual(res, self.def_value)
         uut.set_session_data({self.the_key: new_value})
-        res = uut.render().bytes
+        res = uut.render().bytes.decode()
         self.assertEqual(res, new_value)
 
     def test_vanilla(self):

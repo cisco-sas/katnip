@@ -22,9 +22,9 @@ Tests for Scapy field:
 '''
 
 from scapy.all import *
+from bitstring import Bits
 from common import metaTest
 from test_model_low_level_field import ValueTestCase
-from bitstring import Bits
 from katnip.model.low_level.scapy import *
 
 
@@ -38,7 +38,7 @@ class ScapyFieldTests(ValueTestCase):
         self.seed = 1000
         random.seed(self.seed)
         self._fuzz_packet = IP(ttl=RandByte())
-        self.default_value = str(IP(ttl=RandByte()))
+        self.default_value = IP(ttl=RandByte()).build()
         self.default_value_rendered = Bits(bytes=self.default_value)
         self.uut_name = 'ScapyFieldTest'
 

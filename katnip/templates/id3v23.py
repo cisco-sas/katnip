@@ -1,8 +1,9 @@
+import struct
+from binascii import unhexlify
+from bitstring import Bits
 from kitty.model import Template, Container, Static, OneOf, Repeat
 from kitty.model import BE8, BE16, BE32, SizeInBytes, String, BaseField, RandomBytes
 from kitty.model import BitFieldBinEncoder, ENC_INT_BE, StrNullTerminatedEncoder
-from bitstring import Bits
-import struct
 
 
 STR_ENC_NULLTERM = StrNullTerminatedEncoder()
@@ -73,7 +74,7 @@ id3v23container = Container(name="id3v23container", fields=[
         id3v23_frame("UFID", fields=[
             String(name="Owner Identifier", value="owner identifier",
                    encoder=STR_ENC_NULLTERM),
-            RandomBytes(name="Identifier", value="A"*64, min_length=1, max_length=100)
+            RandomBytes(name="Identifier", value="A" * 64, min_length=1, max_length=100)
         ]),
         id3v23_text_frame("TALB", value="Album/Movie/Show title"),
         id3v23_text_frame("TBPM", value="100"),  # TODO: numeric strings only
@@ -154,7 +155,7 @@ id3v23container = Container(name="id3v23container", fields=[
             BE8(name="Picture type", value=0x03),
             String(name="Description", value="Description", encoder=STR_ENC_NULLTERM),
             Static(name="Picture data",
-                   value="89504e470d0a1a0a0000000d4948445200000001000000010100000000376ef9240000001049444154789c626001000000ffff03000006000557bfabd40000000049454e44ae426082".decode("hex")),
+                   value=unhexlify("89504e470d0a1a0a0000000d4948445200000001000000010100000000376ef9240000001049444154789c626001000000ffff03000006000557bfabd40000000049454e44ae426082")),
         ])),
         # TODO: implement GEOB
         id3v23_frame("PCNT", fields=Container(fields=[
@@ -172,7 +173,7 @@ id3v23container = Container(name="id3v23container", fields=[
                    encoder=STR_ENC_NULLTERM),
             BE16(name="Preview start", value=0x0000),
             BE16(name="Preview end", value=0x0000),
-            RandomBytes(name="Encryption info", value="A"*64, min_length=1, max_length=100)
+            RandomBytes(name="Encryption info", value="A" * 64, min_length=1, max_length=100)
         ])),
         # TODO: implement LINK
         # TODO: implement POSS
@@ -194,24 +195,24 @@ id3v23container = Container(name="id3v23container", fields=[
             String(name="Description", value="Description", encoder=STR_ENC_NULLTERM),
             String(name="Picture MIME type", value="image/png", encoder=STR_ENC_NULLTERM),
             Static(name="Seller logo",
-                   value="89504e470d0a1a0a0000000d4948445200000001000000010100000000376ef9240000001049444154789c626001000000ffff03000006000557bfabd40000000049454e44ae426082".decode("hex")),
+                   value=unhexlify("89504e470d0a1a0a0000000d4948445200000001000000010100000000376ef9240000001049444154789c626001000000ffff03000006000557bfabd40000000049454e44ae426082")),
         ])),
         id3v23_frame("ENCR", fields=Container(fields=[
             String(name="Owner identifier", value="Owner identifier",
                    encoder=STR_ENC_NULLTERM),
             BE8(name="Method symbol", value=0x01),
-            RandomBytes(name="Encryption data", value="A"*64, min_length=1, max_length=100),
+            RandomBytes(name="Encryption data", value="A" * 64, min_length=1, max_length=100),
         ])),
         id3v23_frame("GRID", fields=Container(fields=[
             String(name="Owner identifier", value="Owner identifier",
                    encoder=STR_ENC_NULLTERM),
             BE8(name="Group symbol", value=0x01),
-            RandomBytes(name="Group dependent data", value="A"*64, min_length=1, max_length=100),
+            RandomBytes(name="Group dependent data", value="A" * 64, min_length=1, max_length=100),
         ])),
         id3v23_frame("PRIV", fields=Container(fields=[
             String(name="Owner identifier", value="Owner identifier",
                    encoder=STR_ENC_NULLTERM),
-            RandomBytes(name="The private data", value="A"*64, min_length=1, max_length=100),
+            RandomBytes(name="The private data", value="A" * 64, min_length=1, max_length=100),
         ])),
 
     ])
@@ -224,6 +225,6 @@ mp3base = Template(name="mp3base", fields=[
     ]),
     Container(name="audio_frame", fields=[
         Static(name="default_data",
-               value="fff310c40002d11aec01401001fffffffffa9c0c0c0c0cf9d5fffff312c40103593f1401803800ffffffd3ff512097c1f37a81aa27fff310c40102f91ee809c08000fffffffff288b841789e3f0008fff310c40202f91b007800143e0403f5fffff0a809cd56000c07fff310c403036916ec7800612003f3ffffea082126016d4d000cfff310c40203291f1c78000e3f0703f5fffff106507aaee2000afff310c40202e1170c7800143f0503f5fffff0606980fa000e07fff310c40302e803307800447203fffffb7fea702755000e0703fff310c40402a123307800872af5fffff8d19ea50281fffffffffff312c40602a11f2819401002fe71a21c85fffffffffff3140dfcfff310c40903493f1401803801207f424a2afffffffc1a51e416fff310c408028006d801c000000e164c414d45332e3937202861fff310c40b00000348000000006c70686129aaaaaaaaaaaaaaaa".decode("hex")),
+               value=unhexlify("fff310c40002d11aec01401001fffffffffa9c0c0c0c0cf9d5fffff312c40103593f1401803800ffffffd3ff512097c1f37a81aa27fff310c40102f91ee809c08000fffffffff288b841789e3f0008fff310c40202f91b007800143e0403f5fffff0a809cd56000c07fff310c403036916ec7800612003f3ffffea082126016d4d000cfff310c40203291f1c78000e3f0703f5fffff106507aaee2000afff310c40202e1170c7800143f0503f5fffff0606980fa000e07fff310c40302e803307800447203fffffb7fea702755000e0703fff310c40402a123307800872af5fffff8d19ea50281fffffffffff312c40602a11f2819401002fe71a21c85fffffffffff3140dfcfff310c40903493f1401803801207f424a2afffffffc1a51e416fff310c408028006d801c000000e164c414d45332e3937202861fff310c40b00000348000000006c70686129aaaaaaaaaaaaaaaa")),
     ])
 ])

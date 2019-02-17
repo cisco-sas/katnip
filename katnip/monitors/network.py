@@ -65,7 +65,7 @@ class NetworkMonitor(BaseMonitor):
         '''
         filename = os.path.join(self._path, 'test_%s.pcap' % self.test_number)
         packets = self._packets[:]
-        if len(packets):
+        if packets:
             wrpcap(filename, packets)
         else:
             self.logger.debug('No packets to write')

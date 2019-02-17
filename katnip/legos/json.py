@@ -22,7 +22,7 @@ JSON legos - simplified fuzzing of JSON-based protocols
 '''
 from __future__ import absolute_import
 import json
-import types
+import six
 from kitty.model import Container
 from kitty.model import Group, String, Static, BaseField, SInt32
 from kitty.model import ENC_INT_DEC
@@ -51,7 +51,7 @@ class JsonBoolean(Container):
         if value is None:
             field = Group(['true', 'false'], name=_valuename(name))
         else:
-            if not isinstance(value, types.BooleanType):
+            if not isinstance(value, bool):
                 raise ValueError('value should be bool, not %s' % type(value))
             # fix python and json boolean incompitability
             value = 'true' if value else 'false'
@@ -172,7 +172,7 @@ def dict_to_JsonObject(the_dict, name=None, ctx=None):
     :rtype: :class:`~katnip.legos.json.JsonObject`
     :return: JSON object that represents the dictionary
     '''
-    if type(the_dict) != dict:
+    if not isinstance(the_dict, dict):
         raise ValueError('expecting dictionary as first argument')
     if ctx is None:
         ctx = _JsonStringContext()
@@ -180,15 +180,15 @@ def dict_to_JsonObject(the_dict, name=None, ctx=None):
     for (k, v) in the_dict.items():
         if v is None:
             val = JsonNull(name=ctx.uname(k), fuzzable=False)
-        elif isinstance(v, types.BooleanType):
+        elif isinstance(v, bool):
             val = JsonBoolean(name=ctx.uname(k), value=v, fuzzable=True)
-        elif isinstance(v, types.StringTypes):
+        elif isinstance(v, six.string_types):
             val = JsonString(name=ctx.uname(k), value=v, fuzzable=True)
-        elif isinstance(v, types.ListType):
+        elif isinstance(v, list):
             val = list_to_JsonArray(v, k, ctx)
-        elif isinstance(v, types.DictionaryType):
+        elif isinstance(v, dict):
             val = dict_to_JsonObject(v, k, ctx)
-        elif isinstance(v, types.IntType):
+        elif isinstance(v, six.integer_types):
             val = SInt32(v, encoder=ENC_INT_DEC, name=ctx.uname(k))
         else:
             raise ValueError('type not supported: %s' % type(v))
@@ -209,7 +209,7 @@ def list_to_JsonArray(the_list, name=None, ctx=None):
     :rtype: :class:`~katnip.legos.json.JsonArray`
     :return: JSON object that represents the list
     '''
-    if type(the_list) != list:
+    if not isinstance(the_list, list):
         raise ValueError('expecting list as first argument')
     if ctx is None:
         ctx = _JsonStringContext()
@@ -217,15 +217,15 @@ def list_to_JsonArray(the_list, name=None, ctx=None):
     for v in the_list:
         if v is None:
             elements.append(JsonNull(ctx.uname('null'), fuzzable=False))
-        elif isinstance(v, types.BooleanType):
+        elif isinstance(v, bool):
             elements.append(JsonBoolean(ctx.uname('bool'), value=v, fuzzable=True))
-        elif isinstance(v, types.StringTypes):
+        elif isinstance(v, six.string_types):
             elements.append(JsonString(ctx.uname('string'), v, fuzzable=True))
-        elif isinstance(v, types.ListType):
+        elif isinstance(v, list):
             elements.append(list_to_JsonArray(v, None, ctx))
-        elif isinstance(v, types.DictionaryType):
+        elif isinstance(v, dict):
             elements.append(dict_to_JsonObject(v, None, ctx))
-        elif isinstance(v, types.IntType):
+        elif isinstance(v, six.integer_types):
             elements.append(SInt32(v, encoder=ENC_INT_DEC, name=ctx.uname('int')))
         else:
             raise ValueError('type not supported: %s' % type(v))
@@ -245,9 +245,9 @@ def str_to_json(json_str, name=None):
     '''
     parsed = json.loads(json_str)
     result = None
-    if type(parsed) == list:
+    if isinstance(parsed, list):
         result = list_to_JsonArray(parsed, name)
-    elif type(parsed) == dict:
+    elif isinstance(parsed, dict):
         result = dict_to_JsonObject(parsed, name)
     else:
         raise ValueError('parsing json string resulted in unsupported type (%s)' % type(parsed))

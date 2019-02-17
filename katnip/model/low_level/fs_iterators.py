@@ -47,7 +47,7 @@ class _FsIterator(KittyObject):
         if self._recurse:
             for path, _, files in os.walk(self._path):
                 current = sorted(self._filter_filenames(files))
-                if len(current):
+                if current:
                     self._path_list.append(path)
                     self._filename_dict[path] = current
                     self._count += len(current)
@@ -95,17 +95,16 @@ class _FsIterator(KittyObject):
         '''
         if self._index == self._count - 1:
             return False
-        else:
-            self._index += 1
-            if self._index > 0:
-                path = self._path_list[self._path_index]
-                files = self._filename_dict[path]
-                if self._file_index < len(files) - 1:
-                    self._file_index += 1
-                else:
-                    self._file_index = 0
-                    self._path_index += 1
-            return True
+        self._index += 1
+        if self._index > 0:
+            path = self._path_list[self._path_index]
+            files = self._filename_dict[path]
+            if self._file_index < len(files) - 1:
+                self._file_index += 1
+            else:
+                self._file_index = 0
+                self._path_index += 1
+        return True
 
     def skip(self, count):
         '''
@@ -118,23 +117,22 @@ class _FsIterator(KittyObject):
         left = self.count - self._index - 1
         if count > left:
             return left
-        else:
-            # progress here
-            to_skip = count
-            while to_skip:
-                path = self._path_list[self._path_index]
-                files = self._filename_dict[path]
-                len_files = len(files[self._file_index:])
-                if len_files > to_skip:
-                    self._path_index += 1
-                    self._file_index = 0
-                    self._index += len_files
-                    to_skip -= len_files
-                else:
-                    self._file_index += to_skip
-                    self._index += to_skip
-                    to_skip = 0
-            return count
+        # progress here
+        to_skip = count
+        while to_skip:
+            path = self._path_list[self._path_index]
+            files = self._filename_dict[path]
+            len_files = len(files[self._file_index:])
+            if len_files > to_skip:
+                self._path_index += 1
+                self._file_index = 0
+                self._index += len_files
+                to_skip -= len_files
+            else:
+                self._file_index += to_skip
+                self._index += to_skip
+                to_skip = 0
+        return count
 
 
 class FsNames(BaseField):

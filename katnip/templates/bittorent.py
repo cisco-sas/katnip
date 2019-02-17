@@ -35,7 +35,7 @@ bittorent_base_template = Template(name='metainfo', fields=[
                 TDict(name='info_single', fuzz_delims=False, fields={
                     # common fields
                     'piece-length': TInteger(value=20),
-                    'pieces': TString(value=RandomBytes(value='\x00'*20*20, min_length=0, max_length=1000, step=20, name='pieces value')),
+                    'pieces': TString(value=RandomBytes(value=b'\x00' * 20 * 20, min_length=0, max_length=1000, step=20, name='pieces value')),
                     'private': TInteger(value=0),
                     # single file fields
                     'name': TString(value='the file name', name='name value'),
@@ -45,7 +45,7 @@ bittorent_base_template = Template(name='metainfo', fields=[
                 TDict(name='info_multi', fuzz_delims=False, fields={
                     # common fields
                     'piece-length': TInteger(value=20),
-                    'pieces': TString(value=RandomBytes(value='\x00'*20*20, min_length=0, max_length=1000, step=20, name='pieces value')),
+                    'pieces': TString(value=RandomBytes(value=b'\x00' * 20 * 20, min_length=0, max_length=1000, step=20, name='pieces value')),
                     'private': TInteger(value=0),
                     # multi file fields
                     'name': TString(value='kitty', name='directory path'),

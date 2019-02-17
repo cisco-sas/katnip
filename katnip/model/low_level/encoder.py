@@ -27,7 +27,7 @@ pycrypto
 
 from Crypto.Cipher import AES, DES, DES3
 from bitstring import Bits
-from kitty.model.low_level.encoder import StrEncoder
+from kitty.model.low_level.encoder import StrEncoder, strToBytes
 from kitty.core import KittyException
 
 
@@ -84,7 +84,7 @@ class BlockCipherEncoder(StrEncoder):
         else:
             raise KittyException('You need to provide either key or key_provider')
         if not self.iv:
-            self.iv = '\x00' * self._iv_size_
+            self.iv = b'\x00' * self._iv_size_
         if len(self.iv) != self._iv_size_:
             raise KittyException('Invalid iv size: %#x. Expected: %#x')
         if not self.padder:
@@ -95,7 +95,7 @@ class BlockCipherEncoder(StrEncoder):
     def _zero_padder(self, data, blocksize):
         remainder = len(data) % self._block_size_
         if remainder:
-            data += '\x00' * (self._block_size_ - remainder)
+            data += b'\x00' * (self._block_size_ - remainder)
         return data
 
 
@@ -105,6 +105,7 @@ class BlockEncryptEncoder(BlockCipherEncoder):
     '''
 
     def encode(self, data):
+        data = strToBytes(data)
         self.current_key = self.key
         if self.key_provider:
             self.current_key = self.key_provider(self.key_size)
@@ -159,6 +160,7 @@ class BlockDecryptEncoder(BlockCipherEncoder):
     '''
 
     def encode(self, data):
+        data = strToBytes(data)
         if len(data) % self._block_size_:
             raise KittyException('data must be %d-bytse aligned' % self._block_size_)
         self.current_key = self.key
