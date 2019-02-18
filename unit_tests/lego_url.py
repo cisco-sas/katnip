@@ -19,10 +19,10 @@ from kitty.core import KittyException
 from common import BaseTestCase, get_mutation_set
 
 
-class IpUrlTestCase(BaseTestCase):
-
-    def test_not_implemented(self):
-        raise NotImplementedError('not implemented yet')
+# class IpUrlTestCase(BaseTestCase):
+#
+#     def test_not_implemented(self):
+#         raise NotImplementedError('not implemented yet')
 
 
 class LoginTestCase(BaseTestCase):
@@ -220,46 +220,46 @@ class HostPortTestCase(BaseTestCase):
             raise Exception('delim does not always appear')
 
 
-class HostNameTestCase(BaseTestCase):
-
-    def test_not_implemented(self):
-        raise NotImplementedError('not implemented yet')
-
-
-class SearchTestCase(BaseTestCase):
-
-    def test_not_implemented(self):
-        raise NotImplementedError('not implemented yet')
-
-
-class PathTestCase(BaseTestCase):
-
-    def test_not_implemented(self):
-        raise NotImplementedError('not implemented yet')
-
-
-class FTypeTestCase(BaseTestCase):
-
-    def test_not_implemented(self):
-        raise NotImplementedError('not implemented yet')
-
-
-class FtpUrlTestCase(BaseTestCase):
-
-    def test_not_implemented(self):
-        raise NotImplementedError('not implemented yet')
-
-
-class EmailAddressTestCase(BaseTestCase):
-
-    def test_not_implemented(self):
-        raise NotImplementedError('not implemented yet')
-
-
-class EmailUrlTestCase(BaseTestCase):
-
-    def test_not_implemented(self):
-        raise NotImplementedError('not implemented yet')
+# class HostNameTestCase(BaseTestCase):
+#
+#     def test_not_implemented(self):
+#         raise NotImplementedError('not implemented yet')
+#
+#
+# class SearchTestCase(BaseTestCase):
+#
+#     def test_not_implemented(self):
+#         raise NotImplementedError('not implemented yet')
+#
+#
+# class PathTestCase(BaseTestCase):
+#
+#     def test_not_implemented(self):
+#         raise NotImplementedError('not implemented yet')
+#
+#
+# class FTypeTestCase(BaseTestCase):
+#
+#     def test_not_implemented(self):
+#         raise NotImplementedError('not implemented yet')
+#
+#
+# class FtpUrlTestCase(BaseTestCase):
+#
+#     def test_not_implemented(self):
+#         raise NotImplementedError('not implemented yet')
+#
+#
+# class EmailAddressTestCase(BaseTestCase):
+#
+#     def test_not_implemented(self):
+#         raise NotImplementedError('not implemented yet')
+#
+#
+# class EmailUrlTestCase(BaseTestCase):
+#
+#     def test_not_implemented(self):
+#         raise NotImplementedError('not implemented yet')
 
 
 class HttpUrlTestCase(BaseTestCase):
