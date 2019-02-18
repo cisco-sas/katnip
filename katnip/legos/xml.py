@@ -46,24 +46,26 @@ class XmlAttribute(Container):
         '''
         :param name: name of the block
         :param attribute: attribute
-        :type value: str/unicode/int
+        :type value: str/unicode/int/[Container]
         :param value: value of the attribute
         :param fuzz_attribute: should we fuzz the attribute field (default: False)
         :param fuzz_value: should we fuzz the value field (default: True)
         '''
         _check_type(attribute, str, 'attribute')
-        _check_type(value, (str, int, ), 'value')
+        _check_type(value, (str, int, list, ), 'value')
 
         value_name = _valuename(name)
         if isinstance(value, str):
-            value_field = String(value, name=value_name, fuzzable=fuzz_value)
+            value_field = [String(value, name=value_name, fuzzable=fuzz_value)]
+        elif isinstance(value, int):
+            value_field = [SInt32(value, encoder=ENC_INT_DEC, fuzzable=fuzz_value, name=value_name)]
         else:
-            value_field = SInt32(value, encoder=ENC_INT_DEC, fuzzable=fuzz_value, name=value_name)
+            value_field = value
         fields = [
             String(attribute, fuzzable=fuzz_attribute, name='%s_attribute' % name),
             Static('='),
             Static('"'),
-            value_field,
+            Container(name=value_name, fields=value_field, fuzzable=fuzz_value),
             Static('"')
         ]
         super(XmlAttribute, self).__init__(fields, name=name)
@@ -99,8 +101,10 @@ class XmlElement(Container):
         for _, attribute in enumerate(attributes):
             fields.append(Static(' '))
             fields.append(attribute)
-        fields.append(Static('>'))
         if content:
+            # Close StartTag
+            fields.append(Static('>'))
+            # Insert inner elements
             content_name = '%s_content' + name
             if isinstance(content, str):
                 fields.append(String(content, fuzzable=fuzz_content, name=content_name))
@@ -111,22 +115,32 @@ class XmlElement(Container):
                 for elem in content:
                     _check_type(elem, XmlElement, 'element inside the content list')
                     fields.append(elem)
-        fields.append(Static('</'))
-        fields.append(Clone(value_field))
-        fields.append(Static('>' + delimiter))
+            # Add CloseTag
+            fields.append(Static('</'))
+            fields.append(Clone(value_field))
+            fields.append(Static('>' + delimiter))
+        else:
+            fields.append(Static(' />' + delimiter))
         super(XmlElement, self).__init__(fields, name=name)
 
 
 if __name__ == '__main__':
     # name, attribute, value, fuzz_attribute=False, fuzz_value=True
+    attributes_container = [
+        Static('Hello:'),
+        String('World'),
+        Static('!'),
+    ]
     attributes = [
         XmlAttribute(name='attr1', attribute='boom', value='attr1 value'),
         XmlAttribute(name='attr2', attribute='box', value=2),
+        XmlAttribute(name='attr3', attribute='container', value=attributes_container),
     ]
     inner_elements = [
         XmlElement(name='inner element', element_name='an_inner_element', content=1, delimiter='\n'),
-        XmlElement(name='inner element 2', element_name='an_inner_element', content='brrr', delimiter='\n')
+        XmlElement(name='inner element 2', element_name='an_inner_element', content='brrr', delimiter='\n'),
+        XmlElement(name='inner element 3', element_name='an_inner_element', delimiter='\n')
     ]
     element = XmlElement(name='element1', element_name='an_element', attributes=attributes, content=inner_elements, delimiter='\n')
     t = Template(element, name='test')
-    print(t.render().tobytes())
+    print(t.render().tobytes().decode())
