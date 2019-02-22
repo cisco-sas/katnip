@@ -29,9 +29,10 @@ parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
 # Test files to use
-from lego_json import *
-from lego_url import *
 from lego_dynamic import *
+from lego_json import *
+from lego_http import *
+from lego_url import *
 from model_low_level_encoders import *
 from test_model_low_level_scapy_field import *
 from test_model_low_level_fs_iterators import *

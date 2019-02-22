@@ -56,10 +56,10 @@ class AuthorizationField(CustomHeaderField):
 
 
 class HttpRequestLine(Container):
-    def __init__(self, method='GET', uri='/', protocol='HTTP', version=1.0, fuzzable_method=False, fuzzable_uri=False, fuzzable=True):
+    def __init__(self, name='http_request_line', method='GET', uri='/', protocol='HTTP', version=1.0, fuzzable_method=False, fuzzable_uri=False, fuzzable=True):
         method_value = [method] if isinstance(method, str) else method
         parsed = urlparse(uri)
-        uri_value = [Path(parsed.path, name='path', fuzz_delims=False)]
+        uri_value = [Path(path=parsed.path, name='path', fuzz_delims=False)]
         if parsed.query:
             uri_value.append(Search(parsed.query, name='search', fuzz_value=True))
         fields = [
@@ -72,4 +72,4 @@ class HttpRequestLine(Container):
             Float(name='version', value=version, encoder=FloatAsciiEncoder('%.1f')),
             Static('\r\n'),
         ]
-        super(HttpRequestLine, self).__init__(name='http_request_line', fields=fields, fuzzable=fuzzable)
+        super(HttpRequestLine, self).__init__(name=name, fields=fields, fuzzable=fuzzable)
