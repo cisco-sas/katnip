@@ -242,7 +242,7 @@ class Search(Container):
     .. todo:: real implementation (parse search string etc.)
     '''
 
-    def __init__(self, search='', fuzz_delims=False, fuzzable=True, name=None):
+    def __init__(self, search='', fuzz_delims=False, fuzz_param=False, fuzz_value=True, fuzzable=True, name=None):
         '''
         :param search: search string (default: '')
         :param fuzz_delims: should fuzz the delimiters (default: False)
@@ -251,8 +251,16 @@ class Search(Container):
         '''
         fields = [
             Delimiter(name='search main delim', value='?', fuzzable=fuzz_delims),
-            String(name='search data', value=search),
         ]
+        for i, part in enumerate(search.split('&')):
+            part = part.split('=')
+            if len(fields) >= 2:
+                fields.append(Delimiter(name='search_delim_%d' % i, value='&', fuzzable=fuzz_delims))
+            fields.append(Container(name='param_%s' % part[0], fields=[
+                String(name='search_%d_key' % i, value=part[0], fuzzable=fuzz_param),
+                Delimiter(value='=', fuzzable=fuzz_delims),
+                String(name='search_%d_value' % i, value=part[1], fuzzable=fuzz_value)
+            ]))
         super(Search, self).__init__(name=name, fields=fields, fuzzable=fuzzable)
 
 
@@ -274,6 +282,8 @@ class Path(Container):
         if path is not None:
             fields.append(Delimiter(name='main delim', value='/', fuzzable=fuzz_delims))
             path_parts = path.split(path_delim)
+            if not path_parts[0]:
+                path_parts = path_parts[1:]
             for i in range(len(path_parts) - 1):
                 fields.append(String(name='path part %d' % i, value=path_parts[i]))
                 fields.append(Delimiter(name='path delim %d' % i, value=path_delim, fuzzable=fuzz_delims))
@@ -353,7 +363,7 @@ class HttpUrl(Url):
             path = Path(path=parsed.path[1:], fuzz_delims=fuzz_delims, fuzzable=fuzzable, name='path')
         if parsed.query:
             search = Search(search=parsed.query, fuzz_delims=fuzz_delims, fuzzable=fuzzable, name='search')
-        return HttpUrl(scheme=parsed.scheme, login=login, hostport=hostport, path=path, search=search, fuzzable=fuzzable, name=name)
+        return HttpUrl(scheme=parsed.scheme, login=login, hostport=hostport, path=path, search=search, fuzzable=fuzzable)
 
 
 class FType(Container):
