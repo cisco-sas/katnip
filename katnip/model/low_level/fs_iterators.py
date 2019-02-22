@@ -19,11 +19,12 @@ class _FsIterator(KittyObject):
     this module.
     '''
 
-    def __init__(self, path, name_filter, recurse=False):
+    def __init__(self, path, name_filter, recurse=False, include_dirs=True):
         '''
         :param path: base path to iterate over files
         :param name_filter: string to filter filenames, same as shell, not regex
         :param recurse: should iterate inner directories (default: False)
+        :param include_dirs: should include directories in the results (default: True)
 
         :example:
 
@@ -34,6 +35,7 @@ class _FsIterator(KittyObject):
         self._path = path
         self._name_filter = name_filter
         self._recurse = recurse
+        self._include_dirs = include_dirs
         self._path_list = []
         self._filename_dict = {}
         self._count = 0
@@ -45,17 +47,27 @@ class _FsIterator(KittyObject):
     def _enumerate(self):
         self._count = 0
         if self._recurse:
-            for path, _, files in os.walk(self._path):
+            for path, dirs, files in os.walk(self._path):
                 current = sorted(self._filter_filenames(files))
                 if current:
                     self._path_list.append(path)
                     self._filename_dict[path] = current
                     self._count += len(current)
+                if self._include_dirs:
+                    current = sorted(self._filter_filenames(dirs))
+                    if current:
+                        if path not in self._path_list:
+                            self._path_list.append(path)
+                            self._filename_dict[path] = []
+                        self._filename_dict[path].extend(current)
+                        self._count += len(current)
             self._path_list = sorted(self._path_list)
         else:
             files = os.listdir(self._path)
             self._path_list = [self._path]
             current = sorted(self._filter_filenames(files))
+            current = [
+                c for c in current if self._include_dirs or not os.path.isdir(os.path.join(self._path, c))]
             self._filename_dict[self._path] = current
             self._count += len(current)
 
@@ -147,18 +159,19 @@ class FsNames(BaseField):
 
     _encoder_type_ = StrEncoder
 
-    def __init__(self, path, name_filter, recurse=False, full_path=True, encoder=ENC_STR_DEFAULT, fuzzable=True, name=None):
+    def __init__(self, path, name_filter, recurse=False, full_path=True, include_dirs=True, encoder=ENC_STR_DEFAULT, fuzzable=True, name=None):
         '''
         :param path: base path to iterate over files
         :param name_filter: string to filter filenames, same as shell, not regex
         :param recurse: should iterate inner directories (default: False)
         :param full_path: should include full path rather than only file name (default: True)
+        :param include_dirs: should include directories in the results (default: True)
         :type encoder: :class:`~kitty.model.low_level.encoder.StrEncoder`
         :param encoder: encoder for the field
         :param fuzzable: is field fuzzable (default: True)
         :param name: name of the object (default: None)
         '''
-        self._fsi = _FsIterator(path, name_filter, recurse)
+        self._fsi = _FsIterator(path, name_filter=name_filter, recurse=recurse, include_dirs=include_dirs)
         self._full_path = full_path
         if self._full_path:
             default_value = os.path.join(*self._fsi.current())
@@ -211,7 +224,7 @@ class FsContent(BaseField):
         :param fuzzable: is field fuzzable (default: True)
         :param name: name of the object (default: None)
         '''
-        self._fsi = _FsIterator(path, name_filter, recurse)
+        self._fsi = _FsIterator(path, name_filter=name_filter, recurse=recurse, include_dirs=False)
         super(FsContent, self).__init__(b'', encoder, fuzzable, name)
         self._num_mutations = self._fsi.count()
 

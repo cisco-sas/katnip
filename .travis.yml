@@ -5,6 +5,7 @@ python:
 install:
     - pip install coveralls
     - pip install PyYAML
+    - pip install pyfakefs
     - pip install -e .
 before_script:
     - mkdir logs

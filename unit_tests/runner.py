@@ -34,6 +34,7 @@ from lego_url import *
 from lego_dynamic import *
 from model_low_level_encoders import *
 from test_model_low_level_scapy_field import *
+from test_model_low_level_fs_iterators import *
 
 
 if __name__ == '__main__':
