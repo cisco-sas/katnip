@@ -102,16 +102,15 @@ class GdbServerMonitor(BaseMonitor):
         gdb_report = GdbMiReport(response)
         if gdb_report.is_stopped():
             self.report.failed('The program has stopped: %s' % gdb_report.stopped_payload)
-            print(gdb_report.stopped_payload)
             if gdb_report.stopped_payload.get('signal-name') in self.watch_signals:
                 sig_name = gdb_report.stopped_payload.get('signal-name')
-                addr = gdb_report.stopped_payload.frame.get('addr')
-                func = gdb_report.stopped_payload.frame.get('func')
-                from_target = gdb_report.stopped_payload.frame.get('from')
+                addr = gdb_report.stopped_payload['frame'].get('addr')
+                func = gdb_report.stopped_payload['frame'].get('func')
+                from_target = gdb_report.stopped_payload['frame'].get('from')
                 thread_id = gdb_report.stopped_payload.get('thread-id')
                 # Write report
                 self.logger.warning('Has signal: %s' % sig_name)
-                self.report.failed('Thread: %d Signal: %s Func: %s ( %d ) %s' % (
+                self.report.failed('Thread: %s Signal: %s Func: %s ( %s ) %s' % (
                     thread_id, sig_name, func, addr, from_target
                 ))
                 # Write backtrace
@@ -126,4 +125,3 @@ class GdbServerMonitor(BaseMonitor):
 
     def _monitor_func(self):
         sleep(0.1)
-
