@@ -1,7 +1,7 @@
 from katnip.legos.url import DecimalNumber, Search, Path, urlparse
 from kitty.model import Container
-from kitty.model import String, Static, Group, Delimiter, Float
-from kitty.model import ENC_BITS_BASE64, FloatAsciiEncoder
+from kitty.model import String, Static, Group, Delimiter, Float, Size, OneOf
+from kitty.model import ENC_BITS_BASE64, FloatAsciiEncoder, ENC_INT_DEC
 
 
 def _valuename(txt):
@@ -27,19 +27,28 @@ class CustomHeaderField(Container):
 
 class TextField(CustomHeaderField):
     def __init__(self, key, value, end=False, fuzzable_key=False, fuzzable_value=True):
-        value_field = [String(name="value", value=value)]
+        value_field = String(name="value", value=value)
         super(TextField, self).__init__(key, value_field, end, fuzzable_key, fuzzable_value)
 
 
 class IntField(CustomHeaderField):
     def __init__(self, key, value, end=False, fuzzable_key=False, fuzzable_value=True):
-        value_field = [DecimalNumber(
+        value_field = DecimalNumber(
             name="value",
             value=value,
             num_bits=32,
             signed=True
-        )]
+        )
         super(IntField, self).__init__(key, value_field, end, fuzzable_key, fuzzable_value)
+
+
+class ContentLengthField(CustomHeaderField):
+    def __init__(self, value, sized_field, end=False, fuzzable_key=False, fuzzable_value=True):
+        value_field = OneOf(fields=[
+            Size(sized_field=sized_field, length=32, encoder=ENC_INT_DEC),
+            DecimalNumber(name="value", value=value, num_bits=32, signed=True),
+        ])
+        super(ContentLengthField, self).__init__('Content-Length', value_field, end, fuzzable_key, fuzzable_value)
 
 
 class AuthorizationField(CustomHeaderField):
