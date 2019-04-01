@@ -60,34 +60,31 @@ class TelnetMonitor(BaseMonitor):
         self._monitor_cmds = []
 
     def _read_until(self, tn, expected):
-        resp = tn.read_until(expected, self.cmd_timeout)
+        resp = tn.read_until(expected.encode(), self.cmd_timeout).decode()
         if expected in resp:
-            return resp
-        else:
-            raise Exception('%s: timeout while waiting for expected: "%s"'
-                            % (self.name, expected))
+            return resp.strip()
+        raise Exception('%s: timeout while waiting for expected: "%s"'
+                        % (self.name, expected))
 
     def _login(self, tn):
         '''
         .. todo:: need to make it more robust
         '''
         self._read_until(tn, 'login:')
-        tn.write(self.username + '\n')
+        tn.write(('%s\n' % self.username).encode())
         self._read_until(tn, 'Password:')
-        tn.write(self.password + '\n')
+        tn.write(('%s\n' % self.password).encode())
         self._read_until(tn, 'Using network console')
 
     def _do_cmd(self, tn, cmd, expected_output):
-        tn.write(cmd + '\n')
+        tn.write(b'%s\n' % cmd.encode())
         if expected_output is not None:
-            output = tn.read_until(expected_output, self.cmd_timeout)
+            output = self._read_until(tn, expected_output)
             if expected_output in output:
                 return (True, output)
-            else:
-                return (False, output)
-        else:
-            output = tn.read_some()
-            return (True, output)
+            return (False, output)
+        output = tn.read_some().decode()
+        return (True, output)
 
     def setup(self):
         self.tn = telnetlib.Telnet(self.host, self.port)
