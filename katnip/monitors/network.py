@@ -87,7 +87,7 @@ class NetworkMonitor(BaseMonitor):
         '''
         self.logger.debug('in _monitor_func')
         if self._sock:
-            packet = self._sock.recv(1600)
+            packet = self._sock.recv()
             if packet and (self._packets is not None):
                 self._packets.append(packet)
 
